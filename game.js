@@ -55,8 +55,20 @@ const state = {
 };
 
 function cloneData(value) {
-  if (typeof structuredClone === "function") return structuredClone(value);
-  return JSON.parse(JSON.stringify(value));
+  if (typeof structuredClone === "function") {
+    try {
+      return structuredClone(value);
+    } catch {
+      // Functions cannot be structured-cloned; fall through to safe deep copy.
+    }
+  }
+  if (Array.isArray(value)) return value.map(cloneData);
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = cloneData(v);
+    return out;
+  }
+  return value;
 }
 
 function isBuilderPage() {
@@ -568,7 +580,9 @@ function resolveEffects(effects, side, runtime = {}) {
 
     if (effect.type === "coin_pp") {
       if (side === "player" || state.battleMode === "pvp") {
+        const before = state.pp;
         state.pp = Math.min(10, state.pp + (effect.amount || 0));
+        log(`${sideLabel(side)}のPP: ${before} -> ${state.pp}（コイン）`);
       } else if (runtime.enemyPp) {
         runtime.enemyPp.value = Math.min(10, runtime.enemyPp.value + (effect.amount || 0));
       }
@@ -1175,7 +1189,8 @@ function renderBattle() {
   document.getElementById("turn").textContent = String(state.turn);
   document.getElementById("playerHp").textContent = String(Math.max(0, me.getLeaderHp()));
   document.getElementById("enemyHp").textContent = String(Math.max(0, me.getEnemyLeaderHp()));
-  document.getElementById("pp").textContent = `${state.pp}/${state.maxPp}`;
+  const ppCapForView = Math.max(state.maxPp, state.pp);
+  document.getElementById("pp").textContent = `${state.pp}/${ppCapForView}`;
   const missionEl = document.getElementById("missionText");
   if (missionEl) {
     const m = missionFor(side);
