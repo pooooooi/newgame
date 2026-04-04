@@ -1243,3 +1243,871 @@ button:hover {
     max-height: 150px !important;
   }
 }
+/* --- Clean UI Pass --- */
+:root {
+  --clean-panel: rgba(14, 24, 42, 0.9);
+  --clean-line: #3b567f;
+  --clean-card: linear-gradient(180deg, #173055, #132645);
+  --clean-muted: #b4c4e4;
+}
+
+body {
+  animation: none !important;
+}
+
+.panel,
+.chip,
+.leaderCard,
+.battleCard,
+.costOrb,
+.artSigil,
+.titleStage,
+.titleBtn {
+  animation: none !important;
+}
+
+.panel {
+  background: var(--clean-panel);
+  border: 1px solid var(--clean-line);
+  box-shadow: 0 8px 24px rgba(3, 9, 22, 0.32);
+}
+
+h1 {
+  letter-spacing: 0.2px;
+}
+
+.sub {
+  color: var(--clean-muted);
+}
+
+.status {
+  gap: 6px;
+}
+
+.chip {
+  background: rgba(9, 18, 35, 0.72);
+  border-color: #4c6997;
+  padding: 7px 8px;
+}
+
+.battleArena {
+  box-shadow: inset 0 0 20px rgba(4, 10, 24, 0.45);
+}
+
+.lane {
+  border-color: #3f5884;
+  background: rgba(8, 18, 36, 0.56);
+}
+
+.enemyLane,
+.playerLane {
+  background: rgba(10, 20, 40, 0.54);
+}
+
+.card {
+  transition: transform .1s ease, border-color .1s ease;
+}
+
+.card:hover {
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+.battleCard {
+  background: var(--clean-card);
+  border-color: #5f7db2;
+}
+
+.battleCard.spellCard {
+  background: linear-gradient(180deg, #2f3565, #242953);
+  border-color: #7c74b3;
+}
+
+.battleCard.evolutionCard {
+  background: linear-gradient(180deg, #204c63, #173a4e);
+  border-color: #4f95a7;
+}
+
+.battleCard.selected {
+  box-shadow: 0 0 0 2px rgba(230, 194, 107, 0.3);
+}
+
+.cardText {
+  background: rgba(4, 10, 20, 0.42);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tag {
+  background: rgba(32, 50, 87, 0.5);
+}
+
+.actions {
+  gap: 6px;
+}
+
+button {
+  transition: background .1s ease, border-color .1s ease;
+}
+
+button:hover {
+  transform: none;
+  filter: none;
+  box-shadow: none;
+}
+
+.log {
+  background: rgba(7, 14, 28, 0.78);
+  border-color: #36507d;
+}
+
+.rotateCard {
+  box-shadow: 0 8px 20px rgba(3, 9, 22, 0.35);
+}
+
+@media (max-width: 950px) and (orientation: landscape) {
+  .battleApp {
+    gap: 6px;
+  }
+
+  .battleMainPanel,
+  .battleLogPanel {
+    padding: 7px;
+  }
+
+  .status {
+    gap: 5px;
+  }
+
+  .battleCard,
+  .emptySlot {
+    width: 106px !important;
+    min-width: 106px !important;
+    min-height: 148px !important;
+  }
+
+  .battleLogPanel .log {
+    min-height: 280px !important;
+    max-height: 280px !important;
+  }
+}
+/* --- Compact Battle Fit --- */
+.battleApp {
+  height: calc(100dvh - 12px);
+  max-height: calc(100dvh - 12px);
+}
+
+.battleMainPanel,
+.battleLogPanel {
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.battleMainPanel {
+  gap: 6px;
+}
+
+.battleMainPanel h1 {
+  margin-bottom: 4px;
+  font-size: 18px;
+}
+
+.battleMainPanel .sub {
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.battleArena {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 6px;
+}
+
+.status {
+  margin-bottom: 0;
+}
+
+.leaderRow {
+  margin-bottom: 0;
+}
+
+.board {
+  margin-bottom: 0;
+  gap: 6px;
+}
+
+.lane {
+  min-height: 76px;
+  padding: 6px;
+}
+
+.lane h3 {
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.handLane {
+  margin-bottom: 0;
+}
+
+.hand {
+  min-height: 156px;
+  max-height: 170px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+}
+
+.boardRow {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.battleCard,
+.emptySlot {
+  width: 102px !important;
+  min-width: 102px !important;
+  min-height: 146px !important;
+}
+
+.cardName {
+  font-size: 10px;
+}
+
+.cardText {
+  font-size: 8.5px;
+  line-height: 1.15;
+  padding: 2px 4px;
+}
+
+.costOrb {
+  min-width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
+.artSigil {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.stat {
+  min-width: 22px;
+  padding: 1px 3px;
+  font-size: 10px;
+}
+
+.tag {
+  font-size: 9px;
+  padding: 1px 5px;
+}
+
+.actions {
+  margin-top: 0;
+  gap: 5px;
+}
+
+.actions button {
+  min-height: 32px;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+.actions #attackHint {
+  font-size: 10px;
+}
+
+.battleLogPanel h1 {
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.battleLogPanel .log {
+  flex: 1;
+  min-height: 0 !important;
+  max-height: none !important;
+  font-size: 11px;
+  padding: 8px;
+}
+
+@media (max-width: 950px) and (orientation: landscape) {
+  .battleApp {
+    height: 100dvh;
+    max-height: 100dvh;
+    grid-template-columns: 1fr 250px !important;
+    gap: 6px;
+  }
+
+  .battleMainPanel,
+  .battleLogPanel {
+    padding: 6px;
+  }
+
+  .battleCard,
+  .emptySlot {
+    width: 92px !important;
+    min-width: 92px !important;
+    min-height: 132px !important;
+  }
+
+  .hand {
+    min-height: 136px;
+    max-height: 144px;
+  }
+
+  .battleLogPanel .log {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 700px) and (orientation: portrait) {
+  .battleApp {
+    height: auto;
+    max-height: none;
+  }
+
+  .battleMainPanel,
+  .battleLogPanel {
+    height: auto;
+  }
+
+  .battleArena {
+    grid-template-rows: auto auto auto auto;
+  }
+}
+/* --- Efficient Battle UI --- */
+.cardPreview {
+  margin-top: 6px;
+  border: 1px solid #466393;
+  border-radius: 8px;
+  background: rgba(8, 18, 36, 0.75);
+  padding: 6px 8px;
+  min-height: 52px;
+}
+
+.previewName {
+  font-size: 12px;
+  color: #e8f0ff;
+  margin-bottom: 2px;
+}
+
+.previewText {
+  font-size: 11px;
+  color: #b8c9e8;
+  line-height: 1.3;
+}
+
+.handCardCompact .cardText {
+  display: none !important;
+}
+
+.handCardCompact .cardArt {
+  min-height: 70px;
+}
+
+.handCardCompact .cardBottom {
+  margin-top: 2px;
+}
+
+.handCardCompact {
+  position: relative;
+}
+
+.miniInfoBtn {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid #7ea0d6;
+  background: rgba(18, 41, 77, 0.9);
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* ボタン重なり防止: sticky解除 */
+@media (max-width: 600px) {
+  .actions {
+    position: static !important;
+    background: transparent !important;
+    padding-top: 0 !important;
+  }
+
+  .hand {
+    margin-bottom: 6px;
+  }
+
+  .cardPreview {
+    margin-bottom: 6px;
+  }
+}
+
+@media (max-width: 950px) and (orientation: landscape) {
+  .actions {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .actions #attackHint {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hand {
+    max-height: 130px;
+    min-height: 122px;
+  }
+
+  .cardPreview {
+    min-height: 42px;
+    padding: 5px 7px;
+  }
+
+  .previewText {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+}
+/* --- Battle Overlap Hotfix --- */
+.battleMainPanel {
+  overflow: hidden;
+}
+
+.handLane {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 6px;
+}
+
+.hand {
+  height: 176px !important;
+  min-height: 176px !important;
+  max-height: 176px !important;
+  padding: 6px !important;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden !important;
+  align-items: stretch;
+}
+
+.hand .battleCard {
+  width: 110px !important;
+  min-width: 110px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.hand .emptySlot {
+  width: 110px !important;
+  min-width: 110px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.hand .cardArt {
+  min-height: 56px !important;
+}
+
+.cardPreview {
+  min-height: 56px !important;
+}
+
+.actions {
+  position: static !important;
+  margin-top: 6px !important;
+  z-index: 1;
+}
+
+@media (max-width: 1100px) and (orientation: landscape) {
+  .hand {
+    height: 142px !important;
+    min-height: 142px !important;
+    max-height: 142px !important;
+  }
+
+  .hand .battleCard,
+  .hand .emptySlot {
+    width: 92px !important;
+    min-width: 92px !important;
+  }
+
+  .hand .cardName {
+    font-size: 10px;
+  }
+
+  .hand .costOrb {
+    min-width: 19px;
+    height: 19px;
+    font-size: 10px;
+  }
+
+  .hand .cardArt {
+    min-height: 44px !important;
+  }
+
+  .cardPreview {
+    min-height: 44px !important;
+  }
+}
+
+@media (max-width: 700px) and (orientation: portrait) {
+  .hand {
+    height: 160px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
+  }
+
+  .hand .battleCard,
+  .hand .emptySlot {
+    width: 98px !important;
+    min-width: 98px !important;
+  }
+}
+/* --- Minimal Battle Layout (No Overlap) --- */
+.battleApp {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  grid-template-columns: 1fr 240px !important;
+  gap: 6px !important;
+}
+
+.battleMainPanel,
+.battleLogPanel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px !important;
+}
+
+.battleMainPanel h1 {
+  font-size: 16px !important;
+  margin: 0 0 4px !important;
+}
+
+.battleMainPanel .sub {
+  display: none !important;
+}
+
+.battleArena {
+  flex: 1;
+  min-height: 0;
+  display: grid !important;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 5px;
+  padding: 6px !important;
+}
+
+.status {
+  margin: 0 !important;
+  gap: 4px !important;
+}
+
+.chip {
+  padding: 5px 7px !important;
+  font-size: 11px !important;
+}
+
+.leaderRow {
+  margin: 0 !important;
+  display: flex !important;
+  gap: 6px !important;
+  align-items: center;
+}
+
+#playerLeaderAvatar {
+  display: none !important;
+}
+
+#enemyLeaderAvatar {
+  width: 170px;
+  min-height: 44px !important;
+  padding: 4px 6px !important;
+}
+
+#enemyLeaderAvatar .leaderFace {
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+}
+
+#enemyLeaderAvatar .leaderName {
+  font-size: 11px;
+}
+
+#enemyLeaderAvatar .leaderInfo {
+  font-size: 10px;
+}
+
+.board {
+  margin: 0 !important;
+  gap: 5px !important;
+}
+
+.lane {
+  min-height: 0 !important;
+  padding: 5px !important;
+}
+
+.lane h3 {
+  margin: 0 0 4px !important;
+  font-size: 11px !important;
+}
+
+.boardRow {
+  min-height: 110px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap !important;
+  gap: 5px;
+}
+
+.handLane {
+  margin: 0 !important;
+}
+
+.hand {
+  height: 118px !important;
+  min-height: 118px !important;
+  max-height: 118px !important;
+  padding: 5px !important;
+  overflow-x: auto;
+  overflow-y: hidden !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+}
+
+.battleCard,
+.emptySlot,
+.hand .battleCard,
+.hand .emptySlot {
+  width: 84px !important;
+  min-width: 84px !important;
+  min-height: 118px !important;
+  height: 118px !important;
+  padding: 5px !important;
+}
+
+.cardTop {
+  gap: 4px;
+}
+
+.cardName {
+  font-size: 9px !important;
+  line-height: 1.1;
+}
+
+.costOrb {
+  min-width: 16px !important;
+  height: 16px !important;
+  font-size: 9px !important;
+}
+
+.cardArt {
+  min-height: 40px !important;
+  padding: 4px !important;
+}
+
+.artSigil {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 10px !important;
+}
+
+.artName,
+.tag {
+  font-size: 8px !important;
+}
+
+.cardText {
+  display: none !important;
+}
+
+.stat {
+  min-width: 16px !important;
+  padding: 0 2px !important;
+  font-size: 8px !important;
+}
+
+.cardPreview,
+.previewName,
+.previewText,
+.miniInfoBtn,
+#attackHint {
+  display: none !important;
+}
+
+.actions {
+  margin-top: 5px !important;
+  gap: 5px !important;
+  position: static !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.actions button {
+  min-height: 28px !important;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+}
+
+.battleLogPanel .log {
+  flex: 1;
+  min-height: 0 !important;
+  max-height: none !important;
+  font-size: 10px !important;
+  padding: 6px !important;
+}
+
+@media (max-width: 1100px) {
+  .battleApp {
+    grid-template-columns: 1fr !important;
+  }
+
+  .battleLogPanel {
+    display: none !important;
+  }
+
+  .battleArena {
+    grid-template-rows: auto auto auto auto;
+  }
+}
+
+@media (max-width: 950px) and (orientation: landscape) {
+  .battleMainPanel {
+    padding: 6px !important;
+  }
+
+  .hand {
+    height: 108px !important;
+    min-height: 108px !important;
+    max-height: 108px !important;
+  }
+
+  .battleCard,
+  .emptySlot,
+  .hand .battleCard,
+  .hand .emptySlot {
+    width: 76px !important;
+    min-width: 76px !important;
+    min-height: 108px !important;
+    height: 108px !important;
+  }
+}
+/* --- Hand Cost Always Visible + Polish --- */
+.hand .battleCard {
+  position: relative;
+  border-color: #6f8fc5 !important;
+  background: linear-gradient(180deg, #1a345f, #132949) !important;
+}
+
+.hand .battleCard::after {
+  content: attr(data-cost);
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid #b9dcff;
+  background: radial-gradient(circle at 30% 30%, #94d9ff, #2d74c8);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  z-index: 5;
+  box-shadow: 0 2px 6px rgba(14, 35, 67, 0.45);
+}
+
+/* 手札では右上の通常コストオーブを隠して重複回避 */
+.hand .battleCard .costOrb {
+  opacity: 0;
+}
+
+.hand .battleCard .cardName {
+  padding-left: 20px;
+}
+
+/* 盤面の見た目を少し上質に */
+.battleArena {
+  border-color: rgba(106, 143, 206, 0.62) !important;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(143, 184, 255, 0.1), transparent 45%),
+    linear-gradient(180deg, rgba(8, 20, 40, 0.74), rgba(5, 14, 31, 0.78)) !important;
+}
+
+.lane {
+  border-color: #4a6798 !important;
+  backdrop-filter: blur(1.5px);
+}
+
+.boardRow {
+  scrollbar-width: thin;
+}
+
+.boardRow::-webkit-scrollbar,
+.hand::-webkit-scrollbar {
+  height: 7px;
+}
+
+.boardRow::-webkit-scrollbar-thumb,
+.hand::-webkit-scrollbar-thumb {
+  background: rgba(117, 148, 204, 0.55);
+  border-radius: 999px;
+}
+
+@media (max-width: 950px) and (orientation: landscape) {
+  .hand .battleCard::after {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .hand .battleCard .cardName {
+    padding-left: 17px;
+  }
+}
+.passOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(2, 8, 20, 0.82);
+  display: grid;
+  place-items: center;
+}
+
+.passCard {
+  width: min(360px, 88vw);
+  border: 1px solid #6688c7;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(22, 39, 74, 0.96), rgba(12, 24, 48, 0.96));
+  padding: 14px;
+  text-align: center;
+}
+
+.passTitle {
+  font-weight: 700;
+  color: #f6df9a;
+  margin-bottom: 4px;
+}
+
+.passText {
+  font-size: 12px;
+  color: #c6d6f4;
+  margin-bottom: 10px;
+}

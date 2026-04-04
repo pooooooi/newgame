@@ -4,13 +4,50 @@ const collectibleCards = cardPool.filter(card => card.collectible !== false);
 
 const DECK_MIN = 20;
 const DECK_MAX = 30;
+const MAX_BOARD = 4;
 const DECK_STORAGE_KEY = "monverse_selected_deck_v1";
+const BATTLE_MODE_KEY = "monverse_battle_mode_v1";
 
 const KEYWORD_LABELS = {
   ward: "守護",
   rush: "突進",
   storm: "疾走"
 };
+
+const MISSION_POOL = [
+  {
+    id: "play_2_cards",
+    text: "このターン中にカードを2枚使う",
+    rewardText: "報酬: 1ドロー",
+    eval: (stats) => stats.cardsPlayed,
+    target: 2,
+    rewardEffects: [{ type: "draw", amount: 1 }]
+  },
+  {
+    id: "summon_2_units",
+    text: "このターン中にフォロワーを2体出す",
+    rewardText: "報酬: ランダム味方+1/+1",
+    eval: (stats) => stats.unitsSummoned,
+    target: 2,
+    rewardEffects: [{ type: "buff_random_ally", atk: 1, hp: 1 }]
+  },
+  {
+    id: "deal_4_to_leader",
+    text: "このターン中に相手リーダーへ4ダメージ",
+    rewardText: "報酬: 自リーダー2回復",
+    eval: (stats) => stats.leaderDamage,
+    target: 4,
+    rewardEffects: [{ type: "heal_leader", amount: 2 }]
+  },
+  {
+    id: "evolve_once",
+    text: "このターン中に1回進化する",
+    rewardText: "報酬: 1ドロー+PP1回復",
+    eval: (stats) => stats.evolves,
+    target: 1,
+    rewardEffects: [{ type: "draw", amount: 1 }, { type: "gain_pp", amount: 1 }]
+  }
+];
 
 const state = {
   builderCounts: initializeBuilderCounts(),
@@ -29,6 +66,15 @@ function saveSelectedDeck(counts) {
   localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(counts));
 }
 
+function saveBattleMode(mode) {
+  localStorage.setItem(BATTLE_MODE_KEY, mode);
+}
+
+function loadBattleMode() {
+  const mode = localStorage.getItem(BATTLE_MODE_KEY);
+  return mode === "pvp" ? "pvp" : "ai";
+}
+
 function loadSelectedDeck() {
   try {
     const raw = localStorage.getItem(DECK_STORAGE_KEY);
@@ -39,6 +85,118 @@ function loadSelectedDeck() {
   } catch {
     return null;
   }
+}
+
+function initMissionStats() {
+  return { cardsPlayed: 0, unitsSummoned: 0, leaderDamage: 0, evolves: 0 };
+}
+
+function freshMission() {
+  const base = MISSION_POOL[Math.floor(Math.random() * MISSION_POOL.length)];
+  return { ...structuredClone(base), progress: 0, completed: false };
+}
+
+function sideTagCounts(side) {
+  return side === "player" ? state.playerTagCounts : state.enemyTagCounts;
+}
+
+function missionFor(side) {
+  return side === "player" ? state.playerMission : state.enemyMission;
+}
+
+function missionStatsFor(side) {
+  return side === "player" ? state.playerMissionStats : state.enemyMissionStats;
+}
+
+function setMissionForTurn(side) {
+  if (side === "player") {
+    state.playerMission = freshMission();
+    state.playerMissionStats = initMissionStats();
+  } else {
+    state.enemyMission = freshMission();
+    state.enemyMissionStats = initMissionStats();
+  }
+}
+
+function updateMissionProgress(side, runtime = {}) {
+  const mission = missionFor(side);
+  const stats = missionStatsFor(side);
+  if (!mission || mission.completed) return;
+
+  mission.progress = Math.min(mission.target, mission.eval(stats));
+  if (mission.progress >= mission.target) {
+    mission.completed = true;
+    log(`${side === "player" ? "あなた" : "相手"}のミッション達成: ${mission.text}`);
+    resolveEffects(mission.rewardEffects, side, runtime);
+  }
+}
+
+function registerMissionEvent(side, eventType, value = 1, runtime = {}) {
+  const stats = missionStatsFor(side);
+  if (!stats) return;
+  if (eventType === "card_play") stats.cardsPlayed += value;
+  if (eventType === "unit_summon") stats.unitsSummoned += value;
+  if (eventType === "leader_damage") stats.leaderDamage += value;
+  if (eventType === "evolve") stats.evolves += value;
+  updateMissionProgress(side, runtime);
+}
+
+function registerTagsPlayed(side, tags = []) {
+  const counts = sideTagCounts(side);
+  for (const tag of tags) {
+    counts[tag] = (counts[tag] || 0) + 1;
+  }
+}
+
+function checkAndTriggerCombo(card, side, runtime = {}) {
+  if (!card.combo) return;
+  const { tag, threshold, effects, text } = card.combo;
+  const counts = sideTagCounts(side);
+  if ((counts[tag] || 0) < threshold) return;
+  log(`${side === "player" ? "あなた" : "相手"}の ${card.name}: ${text}`);
+  resolveEffects(effects || [], side, runtime);
+}
+
+function isAwakened(side, hpAtMost = 10) {
+  const hp = side === "player" ? state.playerHp : state.enemyHp;
+  return hp <= hpAtMost;
+}
+
+function otherSide(side) {
+  return side === "player" ? "enemy" : "player";
+}
+
+function sideLabel(side) {
+  if (state.battleMode === "pvp") return side === "player" ? "プレイヤー1" : "プレイヤー2";
+  return side === "player" ? "あなた" : "相手";
+}
+
+function activeSide() {
+  return state.activeSide || "player";
+}
+
+function showPassOverlay(nextSide) {
+  if (state.battleMode !== "pvp") return;
+  const root = document.getElementById("passOverlay");
+  if (!root) return;
+  const title = document.getElementById("passTitle");
+  const text = document.getElementById("passText");
+  if (title) title.textContent = `${sideLabel(nextSide)}のターン`;
+  if (text) text.textContent = "端末を次のプレイヤーに渡して「準備OK」を押してください";
+  root.classList.remove("hidden");
+}
+
+function hidePassOverlay() {
+  const root = document.getElementById("passOverlay");
+  if (!root) return;
+  root.classList.add("hidden");
+}
+
+function triggerAwakening(card, side, runtime = {}) {
+  if (!card.awakening) return;
+  if (!isAwakened(side, card.awakening.hpAtMost ?? 10)) return;
+  log(`${side === "player" ? "あなた" : "相手"}の ${card.name} 覚醒: ${card.awakening.text}`);
+  resolveEffects(card.awakening.effects || [], side, runtime);
 }
 
 function initializeBuilderCounts() {
@@ -290,12 +448,22 @@ function cleanupDeadUnits(runtime = {}) {
 
 function summonUnitByCardId(cardId, side) {
   const data = getSideData(side);
-  if (data.board.length >= 3) return false;
+  if (data.board.length >= MAX_BOARD) return false;
 
   const base = cardMap[cardId];
   if (!base || base.type !== "unit") return false;
 
   data.board.push(toBoardUnit(base));
+  registerMissionEvent(side, "unit_summon", 1);
+  registerTagsPlayed(side, base.tags || []);
+  return true;
+}
+
+function addCardToHand(side, cardId) {
+  const base = cardMap[cardId];
+  if (!base) return false;
+  const data = getSideData(side);
+  data.hand.push(structuredClone(base));
   return true;
 }
 
@@ -320,7 +488,9 @@ function resolveEffects(effects, side, runtime = {}) {
     }
 
     if (effect.type === "damage_enemy_leader") {
-      data.setEnemyLeaderHp(data.getEnemyLeaderHp() - (effect.amount || 0));
+      const amount = effect.amount || 0;
+      data.setEnemyLeaderHp(data.getEnemyLeaderHp() - amount);
+      registerMissionEvent(side, "leader_damage", amount, runtime);
       continue;
     }
 
@@ -340,7 +510,9 @@ function resolveEffects(effects, side, runtime = {}) {
       if (data.enemyBoard.length > 0) {
         data.enemyBoard[0].hp -= (effect.amount || 0);
       } else {
-        data.setEnemyLeaderHp(data.getEnemyLeaderHp() - (effect.leaderFallback ?? effect.amount ?? 0));
+        const amount = (effect.leaderFallback ?? effect.amount ?? 0);
+        data.setEnemyLeaderHp(data.getEnemyLeaderHp() - amount);
+        registerMissionEvent(side, "leader_damage", amount, runtime);
       }
       continue;
     }
@@ -362,6 +534,17 @@ function resolveEffects(effects, side, runtime = {}) {
       continue;
     }
 
+    if (effect.type === "buff_random_ally") {
+      if (!data.board.length) continue;
+      const idx = randomIndex(data.board);
+      if (idx < 0) continue;
+      const unit = data.board[idx];
+      unit.atk += (effect.atk || 0);
+      unit.maxHp += (effect.hp || 0);
+      unit.hp += (effect.hp || 0);
+      continue;
+    }
+
     if (effect.type === "heal_all_allies") {
       for (const unit of data.board) {
         unit.hp = Math.min(unit.maxHp, unit.hp + (effect.amount || 0));
@@ -370,10 +553,19 @@ function resolveEffects(effects, side, runtime = {}) {
     }
 
     if (effect.type === "gain_pp") {
-      if (side === "player") {
+      if (side === "player" || state.battleMode === "pvp") {
         state.pp = Math.min(state.maxPp, state.pp + (effect.amount || 0));
       } else if (runtime.enemyPp) {
         runtime.enemyPp.value = Math.min(state.maxPp, runtime.enemyPp.value + (effect.amount || 0));
+      }
+      continue;
+    }
+
+    if (effect.type === "coin_pp") {
+      if (side === "player" || state.battleMode === "pvp") {
+        state.pp = Math.min(10, state.pp + (effect.amount || 0));
+      } else if (runtime.enemyPp) {
+        runtime.enemyPp.value = Math.min(10, runtime.enemyPp.value + (effect.amount || 0));
       }
       continue;
     }
@@ -403,7 +595,8 @@ function playCardFromHand(side, handIndex, runtime = {}) {
     return false;
   }
 
-  if (side === "player") {
+  const usesSharedPp = side === "player" || state.battleMode === "pvp";
+  if (usesSharedPp) {
     if (card.cost > state.pp) {
       log(`PP不足: ${card.name} (必要${card.cost})`);
       return false;
@@ -417,9 +610,9 @@ function playCardFromHand(side, handIndex, runtime = {}) {
   data.hand.splice(handIndex, 1);
 
   if (card.type === "unit") {
-    if (data.board.length >= 3) {
+    if (data.board.length >= MAX_BOARD) {
       data.hand.push(card);
-      if (side === "player") state.pp += card.cost;
+      if (usesSharedPp) state.pp += card.cost;
       else runtime.enemyPp.value += card.cost;
       if (side === "player") log("場がいっぱいで出せない。カードは戻った。");
       return false;
@@ -427,19 +620,28 @@ function playCardFromHand(side, handIndex, runtime = {}) {
 
     const unit = toBoardUnit(card);
     data.board.push(unit);
+    registerMissionEvent(side, "card_play", 1, runtime);
+    registerMissionEvent(side, "unit_summon", 1, runtime);
+    registerTagsPlayed(side, card.tags || []);
     if (side === "player") log(`あなたは ${card.name} を召喚。`);
     else log(`相手は ${card.name} を召喚。`);
     if (side === "player") burstFx("play");
 
     if (unit.onPlay.length) resolveEffects(unit.onPlay, side, runtime);
+    checkAndTriggerCombo(card, side, runtime);
+    triggerAwakening(card, side, runtime);
     return true;
   }
 
   if (card.type === "spell") {
+    registerMissionEvent(side, "card_play", 1, runtime);
+    registerTagsPlayed(side, card.tags || []);
     if (side === "player") log(`あなたは ${card.name} を使用。`);
     else log(`相手は ${card.name} を使用。`);
     if (side === "player") burstFx(card.id === "spell_heal" ? "heal" : "play");
     resolveEffects(card.effects || [], side, runtime);
+    checkAndTriggerCombo(card, side, runtime);
+    triggerAwakening(card, side, runtime);
     return true;
   }
 
@@ -451,6 +653,17 @@ function startGameFromBuilder() {
     renderBuilder();
     return;
   }
+  saveBattleMode("ai");
+  saveSelectedDeck(state.builderCounts);
+  showBattleScreen();
+}
+
+function startPvpFromBuilder() {
+  if (!isDeckValid(state.builderCounts)) {
+    renderBuilder();
+    return;
+  }
+  saveBattleMode("pvp");
   saveSelectedDeck(state.builderCounts);
   showBattleScreen();
 }
@@ -463,43 +676,69 @@ function initializeBattleFromDeck(deckCounts) {
   state.enemyHp = 20;
   state.maxPp = 1;
   state.pp = 1;
+  state.battleMode = loadBattleMode();
   state.playerDeck = shuffle(buildDeckFromCounts(deckCounts));
-  state.enemyDeck = buildRandomDeck(deckSize);
+  state.enemyDeck = state.battleMode === "pvp"
+    ? shuffle(buildDeckFromCounts(deckCounts))
+    : buildRandomDeck(deckSize);
   state.playerHand = [];
   state.enemyHand = [];
   state.playerBoard = [];
   state.enemyBoard = [];
+  state.playerTagCounts = {};
+  state.enemyTagCounts = {};
+  state.playerMission = null;
+  state.enemyMission = null;
+  state.playerMissionStats = initMissionStats();
+  state.enemyMissionStats = initMissionStats();
   state.selected = null;
+  state.activeSide = "player";
   state.gameOver = false;
   state.log = [];
   state.phase = "battle";
 
   drawCard("player", 6);
   drawCard("enemy", 6);
+  drawCard("enemy", 1);
+  addCardToHand("enemy", "token_coin");
+  beginTurn("player", false);
 
-  log("ゲーム開始。あなたのターンです。");
+  log(`ゲーム開始。${sideLabel("player")}のターンです。`);
+  log(`${sideLabel("enemy")}は後攻ボーナス: 初手+1枚 / コイン1枚。`);
+}
+
+function beginTurn(side, increasePp = true) {
+  state.activeSide = side;
+  setMissionForTurn(side);
+  if (increasePp) state.maxPp = Math.min(10, state.maxPp + 1);
+  state.pp = state.maxPp;
+  drawCard(side, 1);
+  refreshBoardForTurn(side);
+  log(`ターン${state.turn}: ${sideLabel(side)}のターン。`);
 }
 
 function playCard(handIndex) {
   if (state.phase !== "battle" || state.gameOver) return;
-  playCardFromHand("player", handIndex);
+  playCardFromHand(activeSide(), handIndex);
   renderBattle();
 }
 
 function evolveUnit(index) {
   if (state.phase !== "battle" || state.gameOver) return;
 
-  const unit = state.playerBoard[index];
+  const side = activeSide();
+  const data = getSideData(side);
+  const unit = data.board[index];
   if (!unit || unit.evolved) return;
 
-  const evoHandIndex = findEvoHandIndexForUnit(state.playerHand, unit);
+  const evoHandIndex = findEvoHandIndexForUnit(data.hand, unit);
   if (evoHandIndex < 0) {
     log(`${unit.name} は進化カードが手札にないため進化できない。`);
     renderBattle();
     return;
   }
 
-  const evoCard = state.playerHand[evoHandIndex];
+  const evoCard = data.hand[evoHandIndex];
   if (state.pp < evoCard.cost) {
     log(`進化PP不足: ${evoCard.name} は${evoCard.cost}必要`);
     renderBattle();
@@ -507,8 +746,9 @@ function evolveUnit(index) {
   }
 
   state.pp -= evoCard.cost;
-  state.playerHand.splice(evoHandIndex, 1);
-  applyEvolution(unit, evoCard, "player");
+  data.hand.splice(evoHandIndex, 1);
+  registerMissionEvent(side, "evolve", 1);
+  applyEvolution(unit, evoCard, side);
   log(`${unit.name} に進化した。`);
   burstFx("evolve");
   renderBattle();
@@ -516,7 +756,7 @@ function evolveUnit(index) {
 
 function selectAttacker(index) {
   if (state.phase !== "battle" || state.gameOver) return;
-  const unit = state.playerBoard[index];
+  const unit = getSideData(activeSide()).board[index];
   if (!unit || !unit.canAttack) return;
   state.selected = index;
   renderBattle();
@@ -526,8 +766,10 @@ function attackEnemyUnit(targetIndex) {
   if (state.phase !== "battle" || state.gameOver) return;
   if (state.selected === null) return;
 
-  const attacker = state.playerBoard[state.selected];
-  const defender = state.enemyBoard[targetIndex];
+  const side = activeSide();
+  const data = getSideData(side);
+  const attacker = data.board[state.selected];
+  const defender = data.enemyBoard[targetIndex];
   if (!attacker || !defender) return;
   if (!canAttackFollower(attacker)) {
     log(`${attacker.name} はこのターンまだフォロワーを攻撃できない。`);
@@ -535,7 +777,7 @@ function attackEnemyUnit(targetIndex) {
     return;
   }
 
-  const wards = getWardUnits(state.enemyBoard);
+  const wards = getWardUnits(data.enemyBoard);
   if (wards.length && !hasKeyword(defender, "ward")) {
     log("守護がいるため、先に守護フォロワーを攻撃する必要がある。");
     renderBattle();
@@ -559,7 +801,9 @@ function attackLeader() {
   if (state.phase !== "battle" || state.gameOver) return;
   if (state.selected === null) return;
 
-  const attacker = state.playerBoard[state.selected];
+  const side = activeSide();
+  const data = getSideData(side);
+  const attacker = data.board[state.selected];
   if (!attacker) return;
   if (!canAttackLeader(attacker)) {
     log(`${attacker.name} はこのターンまだリーダーを攻撃できない。`);
@@ -567,15 +811,18 @@ function attackLeader() {
     return;
   }
 
-  if (getWardUnits(state.enemyBoard).length > 0) {
+  if (getWardUnits(data.enemyBoard).length > 0) {
     log("守護がいるためリーダーを攻撃できない。");
     renderBattle();
     return;
   }
 
-  state.enemyHp -= attacker.atk;
+  const damage = attacker.atk;
+  if (side === "player") state.enemyHp -= damage;
+  else state.playerHp -= damage;
+  registerMissionEvent(side, "leader_damage", damage);
   attacker.canAttack = false;
-  log(`${attacker.name} が相手リーダーに ${attacker.atk} ダメージ。`);
+  log(`${attacker.name} が相手リーダーに ${damage} ダメージ。`);
   burstFx("hit");
 
   state.selected = null;
@@ -585,10 +832,12 @@ function attackLeader() {
 
 function canSelectedAttackLeaderNow() {
   if (state.selected === null) return false;
-  const attacker = state.playerBoard[state.selected];
+  const side = activeSide();
+  const data = getSideData(side);
+  const attacker = data.board[state.selected];
   if (!attacker) return false;
   if (!canAttackLeader(attacker)) return false;
-  if (getWardUnits(state.enemyBoard).length > 0) return false;
+  if (getWardUnits(data.enemyBoard).length > 0) return false;
   return true;
 }
 
@@ -601,16 +850,13 @@ function refreshBoardForTurn(side) {
 }
 
 function startPlayerTurn() {
-  state.maxPp = Math.min(10, state.maxPp + 1);
-  state.pp = state.maxPp;
-  drawCard("player", 1);
-  refreshBoardForTurn("player");
-  log(`ターン${state.turn}: あなたのターン。`);
+  beginTurn("player", true);
 }
 
 function enemyTurn() {
   if (state.phase !== "battle" || state.gameOver) return;
 
+  setMissionForTurn("enemy");
   const enemyPp = { value: state.maxPp };
   drawCard("enemy", 1);
   refreshBoardForTurn("enemy");
@@ -628,7 +874,7 @@ function enemyTurn() {
       if (card.cost > enemyPp.value) continue;
 
       if (card.type === "spell" && Math.random() < 0.35) continue;
-      if (card.type === "unit" && state.enemyBoard.length >= 3) continue;
+      if (card.type === "unit" && state.enemyBoard.length >= MAX_BOARD) continue;
 
       if (playCardFromHand("enemy", i, { enemyPp })) {
         acted = true;
@@ -648,6 +894,7 @@ function enemyTurn() {
 
     enemyPp.value -= evoCard.cost;
     state.enemyHand.splice(evoHandIndex, 1);
+    registerMissionEvent("enemy", "evolve", 1, { enemyPp });
     applyEvolution(unit, evoCard, "enemy", { enemyPp });
     log(`相手の ${unit.name} が進化。`);
   }
@@ -681,6 +928,7 @@ function enemyTurn() {
 
     if (canAttackLeader(enemy)) {
       state.playerHp -= enemy.atk;
+      registerMissionEvent("enemy", "leader_damage", enemy.atk, { enemyPp });
       enemy.canAttack = false;
       log(`相手の ${enemy.name} がリーダーへ ${enemy.atk} ダメージ。`);
       if (checkGameOver()) return;
@@ -693,8 +941,20 @@ function enemyTurn() {
 function endTurn() {
   if (state.phase !== "battle" || state.gameOver) return;
 
+  const side = activeSide();
   state.selected = null;
-  state.playerBoard.forEach(unit => { unit.canAttack = false; });
+  getSideData(side).board.forEach(unit => { unit.canAttack = false; });
+
+  if (state.battleMode === "pvp") {
+    const next = otherSide(side);
+    const increasePp = next === "player";
+    if (increasePp) state.turn += 1;
+    beginTurn(next, increasePp);
+    burstFx("play");
+    showPassOverlay(next);
+    renderBattle();
+    return;
+  }
 
   enemyTurn();
   if (checkGameOver()) {
@@ -703,7 +963,7 @@ function endTurn() {
   }
 
   state.turn += 1;
-  startPlayerTurn();
+  beginTurn("player", true);
   burstFx("play");
   renderBattle();
 }
@@ -711,13 +971,13 @@ function endTurn() {
 function checkGameOver() {
   if (state.enemyHp <= 0) {
     state.gameOver = true;
-    log("あなたの勝ち！");
+    log(state.battleMode === "pvp" ? "プレイヤー1の勝ち！" : "あなたの勝ち！");
     burstFx("win");
     return true;
   }
   if (state.playerHp <= 0) {
     state.gameOver = true;
-    log("あなたの負け...");
+    log(state.battleMode === "pvp" ? "プレイヤー2の勝ち！" : "あなたの負け...");
     burstFx("hit");
     return true;
   }
@@ -739,6 +999,7 @@ function effectToText(effect) {
   if (effect.type === "summon") return `${cardMap[effect.cardId]?.name || "ユニット"}を${effect.count || 1}体出す`;
   if (effect.type === "buff_all_allies") return `味方全体を+${effect.atk || 0}/+${effect.hp || 0}`;
   if (effect.type === "gain_pp") return `PPを${effect.amount || 0}回復`;
+  if (effect.type === "coin_pp") return `PPを${effect.amount || 0}増やす（上限超過可）`;
   if (effect.type === "destroy_enemy_highest_atk") return "相手の攻撃力最大フォロワーを破壊";
   if (effect.type === "heal_all_allies") return `味方全体を${effect.amount || 0}回復`;
   if (effect.type === "self_damage") return `自リーダーに${effect.amount || 0}ダメージ`;
@@ -747,6 +1008,7 @@ function effectToText(effect) {
 
 function cardDescription(card) {
   const lines = [];
+  if (card.tags?.length) lines.push(`タグ: ${card.tags.join("/")}`);
 
   if (card.type === "unit") {
     lines.push(`ユニット ${card.atk}/${card.hp}`);
@@ -767,6 +1029,14 @@ function cardDescription(card) {
     const kw = formatKeywords(card.grantsKeywords || []);
     if (kw) lines.push(`付与: ${kw}`);
     if (card.onEvolve?.length) lines.push(`進化時: ${card.onEvolve.map(effectToText).join(" / ")}`);
+  }
+
+  if (card.combo) {
+    lines.push(card.combo.text);
+  }
+
+  if (card.awakening) {
+    lines.push(card.awakening.text);
   }
 
   return lines.join(" | ");
@@ -892,16 +1162,26 @@ function renderBuilder() {
 }
 
 function renderBattle() {
+  const side = activeSide();
+  const opp = otherSide(side);
+  const me = getSideData(side);
+  const foe = getSideData(opp);
+
   document.getElementById("turn").textContent = String(state.turn);
-  document.getElementById("playerHp").textContent = String(Math.max(0, state.playerHp));
-  document.getElementById("enemyHp").textContent = String(Math.max(0, state.enemyHp));
+  document.getElementById("playerHp").textContent = String(Math.max(0, me.getLeaderHp()));
+  document.getElementById("enemyHp").textContent = String(Math.max(0, me.getEnemyLeaderHp()));
   document.getElementById("pp").textContent = `${state.pp}/${state.maxPp}`;
+  const missionEl = document.getElementById("missionText");
+  if (missionEl) {
+    const m = missionFor(side);
+    missionEl.textContent = m ? `${m.text} (${m.progress}/${m.target}) / ${m.rewardText}` : "未設定";
+  }
   document.getElementById("enemyLeaderAvatar").innerHTML = `
     <div class="leaderInner">
       <div class="leaderFace">🜏</div>
       <div class="leaderInfo">
-        <div class="leaderName">Enemy Master</div>
-        <div>HP ${Math.max(0, state.enemyHp)}</div>
+        <div class="leaderName">${sideLabel(opp)}</div>
+        <div>HP ${Math.max(0, me.getEnemyLeaderHp())}</div>
       </div>
     </div>
   `;
@@ -909,8 +1189,8 @@ function renderBattle() {
     <div class="leaderInner">
       <div class="leaderFace">✦</div>
       <div class="leaderInfo">
-        <div class="leaderName">Player Master</div>
-        <div>HP ${Math.max(0, state.playerHp)} / PP ${state.pp}</div>
+        <div class="leaderName">${sideLabel(side)}</div>
+        <div>HP ${Math.max(0, me.getLeaderHp())} / PP ${state.pp}</div>
       </div>
     </div>
   `;
@@ -920,10 +1200,10 @@ function renderBattle() {
   const enemyBoardEl = document.getElementById("enemyBoard");
   enemyBoardEl.className = "boardRow";
   enemyBoardEl.innerHTML = "";
-  if (!state.enemyBoard.length) {
+  if (!foe.board.length) {
     enemyBoardEl.innerHTML = `<div class="emptySlot">相手フォロワーなし</div>`;
   } else {
-    state.enemyBoard.forEach((unit, i) => {
+    foe.board.forEach((unit, i) => {
       const div = document.createElement("div");
       div.className = "card battleCard";
       div.innerHTML = unitCardHtml(unit, `${unit.evolved ? "進化済" : "未進化"} / ${unit.canAttack ? "攻撃可" : "攻撃済"}`);
@@ -935,17 +1215,17 @@ function renderBattle() {
   const playerBoardEl = document.getElementById("playerBoard");
   playerBoardEl.className = "boardRow";
   playerBoardEl.innerHTML = "";
-  if (!state.playerBoard.length) {
+  if (!me.board.length) {
     playerBoardEl.innerHTML = `<div class="emptySlot">味方フォロワーなし</div>`;
   } else {
-    state.playerBoard.forEach((unit, i) => {
+    me.board.forEach((unit, i) => {
       const selected = state.selected === i ? " selected" : "";
       const used = unit.canAttack ? "" : " used";
       const div = document.createElement("div");
       div.className = `card battleCard${selected}${used}`;
 
-      const evoIdx = findEvoHandIndexForUnit(state.playerHand, unit);
-      const evoCard = evoIdx >= 0 ? state.playerHand[evoIdx] : null;
+      const evoIdx = findEvoHandIndexForUnit(me.hand, unit);
+      const evoCard = evoIdx >= 0 ? me.hand[evoIdx] : null;
       const evoHint = unit.evolved ? "" : evoCard ? ` / 進化可:${evoCard.name}` : " / 進化札なし";
 
       div.innerHTML = unitCardHtml(unit, `攻撃${unit.canAttack ? "可" : "済"}${evoHint}`);
@@ -969,16 +1249,17 @@ function renderBattle() {
   const handEl = document.getElementById("hand");
   handEl.className = "hand";
   handEl.innerHTML = "";
-  if (!state.playerHand.length) {
+  if (!me.hand.length) {
     handEl.innerHTML = `<div class="small">手札がありません。</div>`;
   } else {
-    state.playerHand.forEach((card, i) => {
+    me.hand.forEach((card, i) => {
       const div = document.createElement("div");
       const typeClass = card.type === "spell" ? " spellCard" : card.type === "evolution" ? " evolutionCard" : "";
-      div.className = `card battleCard${typeClass}`;
+      div.className = `card battleCard handCardCompact${typeClass}`;
+      div.setAttribute("data-cost", String(card.cost));
 
       if (card.type === "unit") {
-        div.innerHTML = unitCardHtml(card, cardDescription(card), card.cost);
+        div.innerHTML = unitCardHtml(card, "", card.cost);
       } else if (card.type === "evolution") {
         div.innerHTML = `
           <div class="cardTop">
@@ -987,7 +1268,6 @@ function renderBattle() {
           </div>
           <div class="cardArt">
             ${cardArtHtml(card)}
-            <div class="cardText">${cardDescription(card)}</div>
           </div>
           <div class="cardBottom">
             ${keywordTagsHtml(card.grantsKeywords || [])}
@@ -1005,14 +1285,15 @@ function renderBattle() {
           </div>
           <div class="cardArt">
             ${cardArtHtml(card)}
-            <div class="cardText">${cardDescription(card)}</div>
           </div>
           <div class="cardBottom">
             <span class="tag">SPELL</span>
           </div>
         `;
       }
+      div.title = `${card.name} (コスト${card.cost})\n${cardDescription(card)}`;
       div.addEventListener("click", () => playCard(i));
+
       handEl.appendChild(div);
     });
   }
@@ -1025,8 +1306,8 @@ function renderBattle() {
 
   const logEl = document.getElementById("log");
   logEl.innerHTML = state.log.map(line => {
-    if (line.includes("あなたの勝ち")) return `<div class="win">${line}</div>`;
-    if (line.includes("あなたの負け")) return `<div class="lose">${line}</div>`;
+    if (line.includes("勝ち")) return `<div class="win">${line}</div>`;
+    if (line.includes("負け")) return `<div class="lose">${line}</div>`;
     return `<div>${line}</div>`;
   }).join("");
   logEl.scrollTop = logEl.scrollHeight;
@@ -1049,6 +1330,8 @@ function setupBuilderPage() {
   hydrateBuilderCountsFromStorage();
 
   document.getElementById("startGameBtn").addEventListener("click", startGameFromBuilder);
+  const pvpBtn = document.getElementById("startPvpBtn");
+  if (pvpBtn) pvpBtn.addEventListener("click", startPvpFromBuilder);
   document.getElementById("clearDeckBtn").addEventListener("click", () => {
     for (const card of collectibleCards) state.builderCounts[card.id] = 0;
     renderBuilder();
@@ -1081,6 +1364,9 @@ function setupBattlePage() {
 
   initializeBattleFromDeck(deckCounts);
 
+  const passReadyBtn = document.getElementById("passReadyBtn");
+  if (passReadyBtn) passReadyBtn.addEventListener("click", hidePassOverlay);
+
   const leaderBtn = document.getElementById("attackLeaderBtn");
   if (leaderBtn) leaderBtn.addEventListener("click", attackLeader);
   document.getElementById("enemyLeaderAvatar").addEventListener("click", attackLeader);
@@ -1088,6 +1374,7 @@ function setupBattlePage() {
   document.getElementById("resetBtn").addEventListener("click", showBuilderScreen);
 
   renderBattle();
+  hidePassOverlay();
   burstFx("play");
 }
 

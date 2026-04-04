@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="passOverlay" class="passOverlay hidden">
+    <div class="passCard">
+      <div id="passTitle" class="passTitle">プレイヤー交代</div>
+      <div id="passText" class="passText">端末を次のプレイヤーに渡してください</div>
+      <button id="passReadyBtn">準備OK</button>
+    </div>
+  </div>
   <div class="rotateGuide" id="rotateGuide">
     <div class="rotateCard">
       <div class="rotateIcon">📱↻</div>
@@ -26,6 +33,7 @@
           <div class="chip">相手HP: <strong id="enemyHp">20</strong></div>
           <div class="chip">PP: <strong id="pp">1/1</strong></div>
         </div>
+        <div class="chip missionChip">ミッション: <strong id="missionText">未設定</strong></div>
 
         <div class="leaderRow">
           <div id="enemyLeaderAvatar" class="leaderCard enemyLeader targetLeader"></div>
@@ -38,7 +46,7 @@
             <div id="enemyBoard"></div>
           </div>
           <div class="lane playerLane">
-            <h3>あなたの場（最大3体）</h3>
+            <h3>あなたの場（最大4体）</h3>
             <div id="playerBoard"></div>
           </div>
         </div>
@@ -52,7 +60,6 @@
       <div class="actions">
         <button id="endTurnBtn">ターン終了</button>
         <button id="resetBtn">構築に戻る</button>
-        <span id="attackHint" class="small">自分のフォロワーを選んで、相手リーダーか相手フォロワーをタップして攻撃</span>
       </div>
     </section>
 
