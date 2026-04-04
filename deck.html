@@ -1,0 +1,42 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monverse Deck Builder</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="builderScreen" class="app">
+    <section class="panel">
+      <h1>Deck Builder</h1>
+      <p class="sub">20〜30枚でデッキを構築してから対戦開始。進化カードは手札に引いて初めて進化できます。</p>
+      <div class="status">
+        <div class="chip">枚数: <strong id="deckCount">0</strong></div>
+        <div class="chip">条件: <strong id="deckRule">20〜30枚</strong></div>
+        <div class="chip">カード種類: <strong id="cardTypeCount">0</strong></div>
+        <div class="chip">状態: <strong id="deckStatus">未完成</strong></div>
+      </div>
+
+      <div class="lane handLane">
+        <h3>カードプール</h3>
+        <div id="builderCatalog" class="catalog"></div>
+      </div>
+
+      <div class="actions">
+        <button id="autoDeckBtn">ランダム20枚</button>
+        <button id="clearDeckBtn">全消去</button>
+        <button id="startGameBtn">このデッキで開始</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h1>デッキ内容</h1>
+      <div id="deckSummary" class="log"></div>
+    </section>
+  </div>
+
+  <script src="cards.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

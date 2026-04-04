@@ -1,0 +1,61 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monverse Battle</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="battleScreen" class="app battleApp">
+    <section class="panel battleMainPanel">
+      <h1>Monverse Prototype</h1>
+      <p class="sub">ポケモン風: 進化 / シャドバ風: PPとテンポ。先に相手リーダーHPを0にしたら勝ち。</p>
+
+      <div class="battleArena">
+        <div class="status battleHud">
+          <div class="chip">ターン: <strong id="turn">1</strong></div>
+          <div class="chip">あなたHP: <strong id="playerHp">20</strong></div>
+          <div class="chip">相手HP: <strong id="enemyHp">20</strong></div>
+          <div class="chip">PP: <strong id="pp">1/1</strong></div>
+        </div>
+
+        <div class="leaderRow">
+          <div id="enemyLeaderAvatar" class="leaderCard enemyLeader targetLeader"></div>
+          <div id="playerLeaderAvatar" class="leaderCard playerLeader"></div>
+        </div>
+
+        <div class="board">
+          <div class="lane enemyLane">
+            <h3>相手の場</h3>
+            <div id="enemyBoard"></div>
+          </div>
+          <div class="lane playerLane">
+            <h3>あなたの場（最大3体）</h3>
+            <div id="playerBoard"></div>
+          </div>
+        </div>
+
+        <div class="lane handLane">
+          <h3>手札</h3>
+          <div id="hand" class="hand"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="endTurnBtn">ターン終了</button>
+        <button id="resetBtn">構築に戻る</button>
+        <span id="attackHint" class="small">自分のフォロワーを選んで、相手リーダーか相手フォロワーをタップして攻撃</span>
+      </div>
+    </section>
+
+    <section class="panel battleLogPanel">
+      <h1>ログ</h1>
+      <div id="log" class="log"></div>
+    </section>
+  </div>
+
+  <script src="cards.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
