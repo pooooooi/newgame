@@ -935,3 +935,311 @@ button:hover {
     margin-left: 0;
   }
 }
+/* --- Strong Mobile Fixes --- */
+@media (max-width: 900px) {
+  .battleApp {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .battleMainPanel,
+  .battleLogPanel {
+    width: 100%;
+  }
+
+  .battleLogPanel {
+    order: 2;
+  }
+
+  .battleMainPanel {
+    order: 1;
+  }
+
+  .battleArena {
+    padding: 8px;
+  }
+
+  .boardRow,
+  .hand {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+  }
+
+  .boardRow > *,
+  .hand > * {
+    flex: 0 0 auto;
+  }
+
+  .battleCard,
+  .emptySlot {
+    width: 132px !important;
+    min-width: 132px !important;
+    min-height: 182px !important;
+  }
+
+  .battleLogPanel .log {
+    min-height: 180px !important;
+    max-height: 220px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 0;
+  }
+
+  .battleApp {
+    gap: 0;
+  }
+
+  .battleMainPanel,
+  .battleLogPanel {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    padding: 8px;
+  }
+
+  .status {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .leaderRow {
+    grid-template-columns: 1fr;
+  }
+
+  .lane {
+    padding: 6px;
+  }
+
+  .battleCard,
+  .emptySlot {
+    width: 122px !important;
+    min-width: 122px !important;
+    min-height: 170px !important;
+  }
+
+  .cardTop,
+  .cardBottom {
+    gap: 4px;
+  }
+
+  .cardName {
+    font-size: 11px;
+  }
+
+  .costOrb {
+    min-width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    background: rgba(8, 16, 32, 0.92);
+    padding-top: 6px;
+  }
+
+  .actions button {
+    flex: 1;
+    min-height: 40px;
+  }
+
+  .actions #attackHint {
+    flex-basis: 100%;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .battleLogPanel .log {
+    min-height: 140px !important;
+    max-height: 170px !important;
+  }
+}
+/* --- Orientation Mode (Battle) --- */
+.rotateGuide {
+  display: none;
+}
+
+.rotateCard {
+  width: min(320px, 86vw);
+  border: 1px solid #6e8fc9;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(17, 33, 66, 0.96), rgba(9, 20, 43, 0.96));
+  padding: 14px;
+  box-shadow: 0 12px 35px rgba(1, 9, 22, 0.5);
+  text-align: center;
+}
+
+.rotateIcon {
+  font-size: 30px;
+  margin-bottom: 6px;
+}
+
+.rotateTitle {
+  font-weight: 700;
+  color: #f6df9a;
+  margin-bottom: 4px;
+}
+
+.rotateText {
+  font-size: 12px;
+  color: #c7d7f6;
+}
+
+/* 横持ちスマホ: ここを本命レイアウトに */
+@media (max-width: 950px) and (orientation: landscape) {
+  body {
+    padding: 6px;
+  }
+
+  .rotateGuide {
+    display: none !important;
+  }
+
+  .battleApp {
+    grid-template-columns: 1fr 300px !important;
+    gap: 8px;
+  }
+
+  .battleMainPanel,
+  .battleLogPanel {
+    padding: 8px;
+  }
+
+  .battleArena {
+    padding: 8px;
+  }
+
+  .status {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .leaderRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .leaderCard {
+    min-height: 72px;
+    padding: 6px;
+  }
+
+  .leaderFace {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .lane {
+    padding: 6px;
+    min-height: 80px;
+  }
+
+  .boardRow,
+  .hand {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+
+  .battleCard,
+  .emptySlot {
+    width: 110px !important;
+    min-width: 110px !important;
+    min-height: 154px !important;
+  }
+
+  .cardName {
+    font-size: 10px;
+  }
+
+  .cardText {
+    font-size: 9px;
+    line-height: 1.2;
+    padding: 2px 4px;
+  }
+
+  .costOrb {
+    min-width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .artSigil {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
+
+  .stat {
+    min-width: 24px;
+    padding: 2px 4px;
+    font-size: 11px;
+  }
+
+  .hand {
+    min-height: 166px;
+    gap: 6px;
+  }
+
+  .actions {
+    margin-top: 6px;
+    gap: 6px;
+  }
+
+  .actions button {
+    min-height: 36px;
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .actions #attackHint {
+    flex-basis: 100%;
+    font-size: 10px;
+    margin-left: 0;
+  }
+
+  .battleLogPanel .log {
+    min-height: 320px !important;
+    max-height: 320px !important;
+    font-size: 12px;
+  }
+}
+
+/* 縦持ちスマホ: プレイ可能だが横持ち誘導を表示 */
+@media (max-width: 950px) and (orientation: portrait) {
+  .rotateGuide {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: start center;
+    padding-top: 8px;
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  .rotateCard {
+    pointer-events: none;
+    transform: scale(0.94);
+    opacity: 0.96;
+  }
+
+  .battleApp {
+    grid-template-columns: 1fr !important;
+  }
+
+  .battleLogPanel .log {
+    min-height: 120px !important;
+    max-height: 150px !important;
+  }
+}
