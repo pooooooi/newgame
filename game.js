@@ -54,6 +54,11 @@ const state = {
   phase: "build"
 };
 
+function cloneData(value) {
+  if (typeof structuredClone === "function") return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
+}
+
 function isBuilderPage() {
   return Boolean(document.getElementById("builderScreen"));
 }
@@ -93,7 +98,7 @@ function initMissionStats() {
 
 function freshMission() {
   const base = MISSION_POOL[Math.floor(Math.random() * MISSION_POOL.length)];
-  return { ...structuredClone(base), progress: 0, completed: false };
+  return { ...cloneData(base), progress: 0, completed: false };
 }
 
 function sideTagCounts(side) {
@@ -240,7 +245,7 @@ function buildDeckFromCounts(counts) {
   for (const [cardId, count] of Object.entries(counts)) {
     for (let i = 0; i < count; i++) {
       const base = cardMap[cardId];
-      if (base) deck.push(structuredClone(base));
+      if (base) deck.push(cloneData(base));
     }
   }
   return deck;
@@ -382,8 +387,8 @@ function toBoardUnit(card) {
     summonedThisTurn: true,
     evolved: false,
     keywords: [...(card.keywords || [])],
-    onPlay: card.onPlay ? structuredClone(card.onPlay) : [],
-    onDeath: card.onDeath ? structuredClone(card.onDeath) : []
+    onPlay: card.onPlay ? cloneData(card.onPlay) : [],
+    onDeath: card.onDeath ? cloneData(card.onDeath) : []
   };
 }
 
@@ -463,7 +468,7 @@ function addCardToHand(side, cardId) {
   const base = cardMap[cardId];
   if (!base) return false;
   const data = getSideData(side);
-  data.hand.push(structuredClone(base));
+  data.hand.push(cloneData(base));
   return true;
 }
 
@@ -1362,20 +1367,28 @@ function setupBattlePage() {
     return;
   }
 
-  initializeBattleFromDeck(deckCounts);
+  try {
+    initializeBattleFromDeck(deckCounts);
 
-  const passReadyBtn = document.getElementById("passReadyBtn");
-  if (passReadyBtn) passReadyBtn.addEventListener("click", hidePassOverlay);
+    const passReadyBtn = document.getElementById("passReadyBtn");
+    if (passReadyBtn) passReadyBtn.addEventListener("click", hidePassOverlay);
 
-  const leaderBtn = document.getElementById("attackLeaderBtn");
-  if (leaderBtn) leaderBtn.addEventListener("click", attackLeader);
-  document.getElementById("enemyLeaderAvatar").addEventListener("click", attackLeader);
-  document.getElementById("endTurnBtn").addEventListener("click", endTurn);
-  document.getElementById("resetBtn").addEventListener("click", showBuilderScreen);
+    const leaderBtn = document.getElementById("attackLeaderBtn");
+    if (leaderBtn) leaderBtn.addEventListener("click", attackLeader);
+    document.getElementById("enemyLeaderAvatar").addEventListener("click", attackLeader);
+    document.getElementById("endTurnBtn").addEventListener("click", endTurn);
+    document.getElementById("resetBtn").addEventListener("click", showBuilderScreen);
 
-  renderBattle();
-  hidePassOverlay();
-  burstFx("play");
+    renderBattle();
+    hidePassOverlay();
+    burstFx("play");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const logEl = document.getElementById("log");
+    if (logEl) {
+      logEl.innerHTML = `<div class="lose">初期化エラー: ${msg}</div>`;
+    }
+  }
 }
 
 if (isBuilderPage()) setupBuilderPage();

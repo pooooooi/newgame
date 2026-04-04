@@ -2091,6 +2091,10 @@ button:hover {
   place-items: center;
 }
 
+.passOverlay.hidden {
+  display: none !important;
+}
+
 .passCard {
   width: min(360px, 88vw);
   border: 1px solid #6688c7;
@@ -2110,4 +2114,424 @@ button:hover {
   font-size: 12px;
   color: #c6d6f4;
   margin-bottom: 10px;
+}
+
+/* --- Cinematic Battle Redesign (final override) --- */
+.battleApp {
+  max-width: 1260px !important;
+  grid-template-columns: minmax(0, 1fr) 260px !important;
+  gap: 10px !important;
+}
+
+.battleMainPanel {
+  padding: 10px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(173, 209, 255, 0.38) !important;
+  background:
+    radial-gradient(circle at 30% 0%, rgba(111, 164, 255, 0.18), transparent 38%),
+    radial-gradient(circle at 80% 100%, rgba(95, 164, 147, 0.16), transparent 36%),
+    linear-gradient(180deg, rgba(10, 22, 48, 0.9), rgba(7, 16, 33, 0.92)) !important;
+}
+
+.battleMainPanel > h1,
+.battleMainPanel > .sub {
+  display: none !important;
+}
+
+.battleArena {
+  border-radius: 14px !important;
+  border: 1px solid rgba(120, 170, 245, 0.42) !important;
+  padding: 10px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 138px !important;
+  grid-template-areas:
+    "hud side"
+    "leaders side"
+    "board side"
+    "hand side" !important;
+  gap: 8px 8px !important;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(76, 108, 166, 0.25), transparent 50%),
+    repeating-radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 10px),
+    linear-gradient(180deg, rgba(8, 20, 43, 0.84), rgba(5, 13, 28, 0.88)) !important;
+}
+
+.battleHud {
+  grid-area: hud !important;
+  margin: 0 !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.battleHud .chip {
+  background: rgba(5, 18, 40, 0.72) !important;
+  border: 1px solid rgba(139, 186, 255, 0.5) !important;
+  border-radius: 10px !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+}
+
+.missionChip {
+  grid-area: side !important;
+  align-self: start !important;
+  margin: 0 !important;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px !important;
+  line-height: 1.25;
+  border-radius: 10px !important;
+  border: 1px solid rgba(115, 221, 191, 0.56) !important;
+  background: linear-gradient(180deg, rgba(6, 67, 82, 0.74), rgba(6, 35, 50, 0.74)) !important;
+}
+
+.leaderRow {
+  grid-area: leaders !important;
+  margin: 0 !important;
+  gap: 8px !important;
+}
+
+.leaderCard {
+  min-height: 72px !important;
+  border-radius: 12px !important;
+  padding: 7px 9px !important;
+}
+
+.leaderFace {
+  width: 42px !important;
+  height: 42px !important;
+  font-size: 20px !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28), 0 8px 16px rgba(0, 0, 0, 0.38);
+}
+
+.leaderInfo {
+  font-size: 11px !important;
+}
+
+.leaderName {
+  font-size: 14px !important;
+}
+
+.board {
+  grid-area: board !important;
+  margin: 0 !important;
+  gap: 8px !important;
+}
+
+.lane {
+  min-height: 98px !important;
+  padding: 6px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(90deg, rgba(4, 17, 38, 0.84), rgba(5, 22, 49, 0.58)) !important;
+  border: 1px solid rgba(122, 166, 240, 0.4) !important;
+}
+
+.lane h3 {
+  margin: 0 0 4px !important;
+  font-size: 11px !important;
+  letter-spacing: 0.4px;
+  opacity: 0.84;
+}
+
+.boardRow {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  padding-bottom: 1px;
+  gap: 6px !important;
+}
+
+.handLane {
+  grid-area: hand !important;
+  margin: 0 !important;
+  min-height: 122px !important;
+}
+
+.hand {
+  min-height: 92px !important;
+  padding: 8px 8px 4px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(122, 166, 240, 0.34) !important;
+  background: rgba(5, 14, 31, 0.62) !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  gap: 0 !important;
+}
+
+.hand .battleCard {
+  width: 106px !important;
+  min-height: 132px !important;
+  margin-right: -26px;
+  border-radius: 11px !important;
+  transform-origin: 50% 100%;
+  transition: transform 0.16s ease, margin 0.16s ease, box-shadow 0.16s ease;
+}
+
+.hand .battleCard:hover {
+  margin-right: 6px;
+  transform: translateY(-10px) scale(1.04);
+  z-index: 5;
+}
+
+.hand .battleCard .cardName {
+  font-size: 11px !important;
+  line-height: 1.15 !important;
+}
+
+.hand .battleCard .cardText {
+  display: none !important;
+}
+
+.hand .battleCard .cardArt {
+  min-height: 66px !important;
+  padding: 4px !important;
+}
+
+.hand .battleCard .artSigil {
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 13px !important;
+}
+
+.hand .battleCard .tag {
+  font-size: 9px !important;
+  padding: 1px 4px !important;
+}
+
+.hand .battleCard .stat {
+  min-width: 22px !important;
+  font-size: 11px !important;
+  padding: 1px 4px !important;
+}
+
+.hand .costOrb {
+  display: grid !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  font-size: 12px !important;
+  border: 1px solid rgba(165, 220, 255, 0.9) !important;
+  box-shadow: 0 0 12px rgba(56, 144, 255, 0.5);
+}
+
+.battleCard {
+  width: 118px !important;
+  min-height: 154px !important;
+  padding: 6px !important;
+}
+
+.battleCard .cardText {
+  font-size: 10px !important;
+  padding: 2px 4px !important;
+}
+
+.battleCard .costOrb {
+  min-width: 22px !important;
+  height: 22px !important;
+  font-size: 11px !important;
+}
+
+.emptySlot {
+  width: 102px !important;
+  min-height: 128px !important;
+  font-size: 11px !important;
+  border-radius: 10px !important;
+}
+
+.actions {
+  grid-area: side !important;
+  align-self: end !important;
+  display: grid !important;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+
+.actions button {
+  width: 100% !important;
+  min-height: 56px;
+  border-radius: 14px !important;
+  font-size: 18px !important;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+#endTurnBtn {
+  border-color: rgba(97, 235, 255, 0.9) !important;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(203, 255, 255, 0.4), transparent 38%),
+    linear-gradient(180deg, #17b4ff, #0f47b8) !important;
+  box-shadow: 0 8px 20px rgba(17, 118, 223, 0.55);
+}
+
+#resetBtn {
+  min-height: 44px !important;
+  font-size: 13px !important;
+  border-color: rgba(239, 204, 124, 0.52) !important;
+  background: linear-gradient(180deg, rgba(66, 49, 24, 0.92), rgba(33, 24, 11, 0.95)) !important;
+}
+
+.battleLogPanel {
+  padding: 10px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(138, 172, 240, 0.38) !important;
+  background: linear-gradient(180deg, rgba(9, 19, 40, 0.93), rgba(8, 16, 34, 0.93)) !important;
+}
+
+.battleLogPanel h1 {
+  margin: 0 0 6px !important;
+  font-size: 13px !important;
+  color: #d3e2ff !important;
+  letter-spacing: 0.5px;
+}
+
+.battleLogPanel .log {
+  max-height: calc(100vh - 160px) !important;
+  min-height: 320px !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(93, 129, 196, 0.35) !important;
+  background: rgba(4, 12, 25, 0.7) !important;
+}
+
+@media (max-width: 1120px) {
+  .battleApp {
+    grid-template-columns: 1fr !important;
+  }
+
+  .battleLogPanel .log {
+    min-height: 110px !important;
+    max-height: 160px !important;
+  }
+}
+
+@media (max-width: 950px) and (orientation: landscape) {
+  body {
+    padding: 8px !important;
+  }
+
+  .battleMainPanel,
+  .battleLogPanel {
+    border-radius: 12px !important;
+  }
+
+  .battleArena {
+    grid-template-columns: minmax(0, 1fr) 120px !important;
+    padding: 8px !important;
+    gap: 6px !important;
+  }
+
+  .battleHud .chip {
+    padding: 5px 6px !important;
+    font-size: 11px !important;
+  }
+
+  .leaderCard {
+    min-height: 60px !important;
+    padding: 5px 7px !important;
+  }
+
+  .leaderFace {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 16px !important;
+  }
+
+  .leaderName {
+    font-size: 12px !important;
+  }
+
+  .lane {
+    min-height: 88px !important;
+    padding: 5px !important;
+  }
+
+  .battleCard {
+    width: 92px !important;
+    min-height: 126px !important;
+    padding: 4px !important;
+  }
+
+  .battleCard .cardName {
+    font-size: 10px !important;
+  }
+
+  .battleCard .cardArt {
+    min-height: 55px !important;
+  }
+
+  .hand {
+    min-height: 74px !important;
+    padding: 6px 6px 2px !important;
+  }
+
+  .hand .battleCard {
+    width: 82px !important;
+    min-height: 110px !important;
+    margin-right: -22px;
+  }
+
+  .hand .battleCard:hover {
+    margin-right: 3px;
+    transform: translateY(-8px) scale(1.02);
+  }
+
+  .hand .costOrb {
+    min-width: 19px !important;
+    height: 19px !important;
+    font-size: 10px !important;
+  }
+
+  .actions button {
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+  }
+
+  #resetBtn {
+    min-height: 34px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .rotateGuide {
+    display: grid !important;
+  }
+
+  .battleArena {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "hud"
+      "leaders"
+      "board"
+      "hand"
+      "side" !important;
+  }
+
+  .missionChip,
+  .actions {
+    width: 100%;
+  }
+
+  .actions {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Safety: keep cards visible even with legacy override collisions */
+#enemyBoard,
+#playerBoard,
+#hand {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#enemyBoard .battleCard,
+#playerBoard .battleCard,
+#hand .battleCard {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
