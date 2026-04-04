@@ -2535,3 +2535,109 @@ button:hover {
   visibility: visible !important;
   opacity: 1 !important;
 }
+
+/* Mobile landscape rescue: force visible, compact, and stable card layout */
+@media (max-width: 950px) and (orientation: landscape) {
+  .battleApp {
+    height: auto !important;
+    max-height: none !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .battleLogPanel {
+    display: none !important;
+  }
+
+  .battleMainPanel {
+    padding: 6px !important;
+  }
+
+  .battleArena {
+    grid-template-columns: minmax(0, 1fr) 112px !important;
+    grid-template-areas:
+      "hud side"
+      "leaders side"
+      "board side"
+      "hand side" !important;
+    gap: 5px !important;
+    padding: 6px !important;
+  }
+
+  .lane {
+    min-height: 86px !important;
+    overflow: visible !important;
+  }
+
+  .boardRow {
+    min-height: 96px !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    padding-bottom: 2px !important;
+  }
+
+  #enemyBoard .battleCard,
+  #playerBoard .battleCard {
+    width: 80px !important;
+    min-width: 80px !important;
+    min-height: 106px !important;
+    padding: 4px !important;
+  }
+
+  .handLane {
+    min-height: 96px !important;
+  }
+
+  #hand {
+    min-height: 82px !important;
+    max-height: 98px !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 6px !important;
+  }
+
+  #hand .battleCard {
+    width: 74px !important;
+    min-width: 74px !important;
+    min-height: 98px !important;
+    margin-right: 0 !important;
+    transform: none !important;
+  }
+
+  #hand .battleCard:hover {
+    margin-right: 0 !important;
+    transform: translateY(-3px) !important;
+  }
+
+  #hand .battleCard .cardName {
+    font-size: 9px !important;
+  }
+
+  #hand .battleCard .cardArt {
+    min-height: 44px !important;
+  }
+
+  #hand .battleCard .costOrb {
+    min-width: 16px !important;
+    height: 16px !important;
+    font-size: 9px !important;
+    opacity: 1 !important;
+  }
+
+  .battleCard .stat {
+    min-width: 16px !important;
+    font-size: 9px !important;
+    padding: 0 3px !important;
+  }
+
+  .actions button {
+    min-height: 38px !important;
+    font-size: 12px !important;
+  }
+}
