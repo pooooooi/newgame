@@ -6,34 +6,55 @@
   <title>Monverse Deck Builder</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div id="builderScreen" class="app">
-    <section class="panel">
-      <h1>Deck Builder</h1>
-      <p class="sub">20〜30枚でデッキを構築してから対戦開始。進化カードは手札に引いて初めて進化できます。</p>
-      <div class="status">
-        <div class="chip">枚数: <strong id="deckCount">0</strong></div>
-        <div class="chip">条件: <strong id="deckRule">20〜30枚</strong></div>
-        <div class="chip">カード種類: <strong id="cardTypeCount">0</strong></div>
-        <div class="chip">状態: <strong id="deckStatus">未完成</strong></div>
+<body class="pageDeck">
+  <div id="builderScreen" class="app deckApp">
+    <section class="panel deckMainPanel">
+      <header class="deckHeader">
+        <p class="deckKicker">Build Your Deck</p>
+        <h1>Deck Builder</h1>
+        <p class="sub">20〜30枚で編成。カードを増減して、すぐ対戦へ。</p>
+      </header>
+
+      <div class="status deckStats">
+        <div class="chip deckChip">
+          <span class="chipLabel">枚数</span>
+          <strong id="deckCount">0</strong>
+        </div>
+        <div class="chip deckChip">
+          <span class="chipLabel">条件</span>
+          <strong id="deckRule">20〜30</strong>
+        </div>
+        <div class="chip deckChip">
+          <span class="chipLabel">種類</span>
+          <strong id="cardTypeCount">0</strong>
+        </div>
+        <div class="chip deckChip">
+          <span class="chipLabel">状態</span>
+          <strong id="deckStatus">未完成</strong>
+        </div>
       </div>
 
-      <div class="lane handLane">
-        <h3>カードプール</h3>
-        <div id="builderCatalog" class="catalog"></div>
-      </div>
-
-      <div class="actions">
+      <div class="deckTools">
         <button id="autoDeckBtn">ランダム20枚</button>
         <button id="clearDeckBtn">全消去</button>
-        <button id="startGameBtn">VS CPUで開始</button>
-        <button id="startPvpBtn">対人戦で開始</button>
+      </div>
+
+      <div class="lane handLane deckCatalogLane">
+        <div class="deckSectionHead">
+          <h3>カードプール</h3>
+          <span>カードをタップして枚数を調整</span>
+        </div>
+        <div id="builderCatalog" class="catalog"></div>
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel deckSidePanel">
       <h1>デッキ内容</h1>
-      <div id="deckSummary" class="log"></div>
+      <div id="deckSummary" class="log deckSummaryLog"></div>
+      <div class="deckLaunchActions">
+        <button id="startGameBtn">VS CPUで開始</button>
+        <button id="startPvpBtn">対人戦で開始</button>
+      </div>
     </section>
   </div>
 

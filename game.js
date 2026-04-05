@@ -90,7 +90,7 @@ function isBattlePage() {
 }
 
 function saveSelectedDeck(counts) {
-  localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(counts));
+  localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(sanitizeBuilderCounts(counts)));
 }
 
 function saveBattleMode(mode) {
@@ -277,6 +277,48 @@ function initializeBuilderCounts() {
   return counts;
 }
 
+function getBuilderBaseCount(counts, evolutionCard) {
+  if (!evolutionCard?.evolvesFrom) return 0;
+  return counts[evolutionCard.evolvesFrom] || 0;
+}
+
+function hasValidEvolutionDependencies(counts) {
+  return collectibleCards.every((card) => {
+    if (card.type !== "evolution") return true;
+    if ((counts[card.id] || 0) <= 0) return true;
+    return getBuilderBaseCount(counts, card) > 0;
+  });
+}
+
+function sanitizeBuilderCounts(sourceCounts) {
+  const next = {};
+  for (const card of collectibleCards) {
+    const n = Number(sourceCounts?.[card.id]);
+    next[card.id] = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  }
+
+  for (const card of collectibleCards) {
+    if (card.type !== "evolution") continue;
+    if (next[card.id] <= 0) continue;
+    if (getBuilderBaseCount(next, card) > 0) continue;
+    next[card.id] = 0;
+  }
+
+  return next;
+}
+
+function canAddBuilderCard(counts, card) {
+  if (card.type !== "evolution") return true;
+  return getBuilderBaseCount(counts, card) > 0;
+}
+
+function canRemoveBuilderCard(counts, card) {
+  if (card.type !== "unit" || !card.evolvesTo) return true;
+  const evoCount = counts[card.evolvesTo] || 0;
+  const nextBaseCount = Math.max(0, (counts[card.id] || 0) - 1);
+  return evoCount <= 0 || nextBaseCount > 0;
+}
+
 function getDeckCount(counts) {
   return Object.values(counts).reduce((sum, n) => sum + n, 0);
 }
@@ -287,7 +329,7 @@ function getTypeCount(counts) {
 
 function isDeckValid(counts) {
   const size = getDeckCount(counts);
-  return size >= DECK_MIN && size <= DECK_MAX;
+  return size >= DECK_MIN && size <= DECK_MAX && hasValidEvolutionDependencies(counts);
 }
 
 function buildDeckFromCounts(counts) {
@@ -306,10 +348,12 @@ function buildRandomCounts(size) {
   for (const card of collectibleCards) counts[card.id] = 0;
 
   for (let i = 0; i < size; i++) {
-    const picked = collectibleCards[Math.floor(Math.random() * collectibleCards.length)];
+    const selectable = collectibleCards.filter(card => canAddBuilderCard(counts, card));
+    const pool = selectable.length ? selectable : collectibleCards.filter(card => card.type !== "evolution");
+    const picked = pool[Math.floor(Math.random() * pool.length)];
     counts[picked.id] += 1;
   }
-  return counts;
+  return sanitizeBuilderCounts(counts);
 }
 
 function buildRandomDeck(size) {
@@ -662,11 +706,11 @@ function playCardFromHand(side, handIndex, runtime = {}) {
     }
 
     data.hand.splice(handIndex, 1);
-    drawCard(side, 1);
+    resolveEffects([{ type: "heal_leader", amount: 2 }], side, runtime);
     registerMissionEvent(side, "card_play", 1, runtime);
     registerTagsPlayed(side, card.tags || []);
-    log(`${sideLabel(side)}は ${card.name} を転用して1ドロー。`);
-    if (side === "player") burstFx("play");
+    log(`${sideLabel(side)}は ${card.name} を転用してリーダーを2回復。`);
+    if (side === "player") burstFx("heal");
     return true;
   }
 
@@ -854,6 +898,14 @@ function handleHandPointerMove(ev) {
   const dx = ev.clientX - drag.startX;
   const dy = ev.clientY - drag.startY;
   const dist = Math.hypot(dx, dy);
+  const adx = Math.abs(dx);
+  const ady = Math.abs(dy);
+
+  if (!drag.started && adx > 12 && adx > ady + 6) {
+    state.suppressHandClickUntil = nowMs() + 180;
+    cleanupHandDrag();
+    return;
+  }
 
   if (!drag.started && dist < 12) return;
 
@@ -1201,7 +1253,7 @@ function cardDescription(card) {
     const kw = formatKeywords(card.grantsKeywords || []);
     if (kw) lines.push(`付与: ${kw}`);
     if (card.onEvolve?.length) lines.push(`進化時: ${card.onEvolve.map(effectToText).join(" / ")}`);
-    lines.push("手札転用: 1PPで1ドロー");
+    lines.push("手札転用: 1PPでリーダーを2回復");
   }
 
   if (card.combo) {
@@ -1213,6 +1265,37 @@ function cardDescription(card) {
   }
 
   return lines.join(" | ");
+}
+
+function cardInspectDescription(card) {
+  if (!card) return "";
+
+  const parts = [];
+
+  if (card.type === "unit") {
+    const kw = formatKeywords(card.keywords);
+    if (kw) parts.push(`能力 ${kw}`);
+    if (card.onPlay?.length) parts.push(`登場 ${card.onPlay.map(effectToText).join(" / ")}`);
+    if (card.onDeath?.length) parts.push(`退場 ${card.onDeath.map(effectToText).join(" / ")}`);
+    if (!parts.length) parts.push(`${card.atk}/${card.hp} ユニット`);
+  }
+
+  if (card.type === "spell") {
+    parts.push((card.effects || []).map(effectToText).join(" / ") || "効果なし");
+  }
+
+  if (card.type === "evolution") {
+    parts.push(`進化後 ${card.atk}/${card.hp}`);
+    const kw = formatKeywords(card.grantsKeywords || []);
+    if (kw) parts.push(`付与 ${kw}`);
+    if (card.onEvolve?.length) parts.push(`進化時 ${card.onEvolve.map(effectToText).join(" / ")}`);
+    parts.push("転用 1PP 2回復");
+  }
+
+  if (card.combo?.text) parts.push(`コンボ ${card.combo.text}`);
+  if (card.awakening?.text) parts.push(`覚醒 ${card.awakening.text}`);
+
+  return parts.join("  /  ");
 }
 
 function getFactionVisual(cardLike) {
@@ -1285,7 +1368,7 @@ function updateInspectPanel(card) {
   }
 
   titleEl.textContent = `${card.name} (コスト${card.cost ?? "-"})`;
-  textEl.textContent = cardDescription(card) || "効果テキストなし";
+  textEl.textContent = cardInspectDescription(card) || cardDescription(card) || "効果テキストなし";
 }
 
 function showBuilderScreen() {
@@ -1310,28 +1393,37 @@ function unitLabel(unit) {
 
 function renderBuilder() {
   const deckCount = getDeckCount(state.builderCounts);
-  const valid = isDeckValid(state.builderCounts);
+  const dependencyOk = hasValidEvolutionDependencies(state.builderCounts);
+  const countOk = deckCount >= DECK_MIN && deckCount <= DECK_MAX;
+  const valid = countOk && dependencyOk;
 
   document.getElementById("deckCount").textContent = String(deckCount);
   document.getElementById("cardTypeCount").textContent = String(getTypeCount(state.builderCounts));
 
   const statusEl = document.getElementById("deckStatus");
-  statusEl.textContent = valid ? "完成" : "未完成";
+  statusEl.textContent = dependencyOk ? (valid ? "完成" : "未完成") : "進化元不足";
   statusEl.className = valid ? "statusGood" : "statusBad";
 
   const startBtn = document.getElementById("startGameBtn");
   startBtn.disabled = !valid;
+  const startPvpBtn = document.getElementById("startPvpBtn");
+  if (startPvpBtn) startPvpBtn.disabled = !valid;
 
   const catalog = document.getElementById("builderCatalog");
   catalog.innerHTML = "";
 
   for (const card of collectibleCards) {
+    const lockedEvolution = card.type === "evolution" && !canAddBuilderCard(state.builderCounts, card);
+    const lockText = lockedEvolution
+      ? `進化元 ${cardMap[card.evolvesFrom]?.name || "対応ユニット"} を1枚以上入れると選べます。`
+      : "";
     const row = document.createElement("div");
-    row.className = "catalogRow";
+    row.className = `catalogRow${lockedEvolution ? " catalogRowLocked" : ""}`;
     row.innerHTML = `
       <div>
         <strong>${card.name}</strong> (コスト${card.cost})
         <div class="catalogMeta">${cardDescription(card)}</div>
+        ${lockText ? `<div class="catalogLock">${lockText}</div>` : ""}
       </div>
       <div class="rowControls">
         <button data-card-id="${card.id}" data-delta="-1">-</button>
@@ -1343,14 +1435,29 @@ function renderBuilder() {
   }
 
   for (const button of catalog.querySelectorAll("button[data-card-id]")) {
+    const cardId = button.getAttribute("data-card-id");
+    const delta = Number(button.getAttribute("data-delta"));
+    const card = cardMap[cardId];
+    const disabled = delta > 0
+      ? getDeckCount(state.builderCounts) >= DECK_MAX || !canAddBuilderCard(state.builderCounts, card)
+      : (state.builderCounts[cardId] || 0) <= 0 || !canRemoveBuilderCard(state.builderCounts, card);
+    button.disabled = disabled;
+    if (disabled && card?.type === "evolution" && delta > 0) {
+      button.title = `先に ${cardMap[card.evolvesFrom]?.name || "進化元"} を入れてください`;
+    } else if (disabled && card?.type === "unit" && delta < 0 && (state.builderCounts[card.evolvesTo] || 0) > 0) {
+      button.title = `進化先 ${cardMap[card.evolvesTo]?.name || ""} が入っているため、0枚にはできません`;
+    } else {
+      button.title = "";
+    }
+
     button.addEventListener("click", () => {
-      const cardId = button.getAttribute("data-card-id");
-      const delta = Number(button.getAttribute("data-delta"));
       const current = state.builderCounts[cardId] || 0;
       const total = getDeckCount(state.builderCounts);
 
       if (delta > 0 && total >= DECK_MAX) return;
       if (delta < 0 && current <= 0) return;
+      if (delta > 0 && !canAddBuilderCard(state.builderCounts, card)) return;
+      if (delta < 0 && !canRemoveBuilderCard(state.builderCounts, card)) return;
 
       state.builderCounts[cardId] = Math.max(0, current + delta);
       renderBuilder();
@@ -1574,13 +1681,7 @@ function renderBattle() {
 function hydrateBuilderCountsFromStorage() {
   const stored = loadSelectedDeck();
   if (!stored) return;
-
-  const next = {};
-  for (const card of collectibleCards) {
-    const n = Number(stored[card.id]);
-    next[card.id] = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
-  }
-  state.builderCounts = next;
+  state.builderCounts = sanitizeBuilderCounts(stored);
 }
 
 function setupBuilderPage() {
@@ -1596,7 +1697,7 @@ function setupBuilderPage() {
   });
 
   document.getElementById("autoDeckBtn").addEventListener("click", () => {
-    state.builderCounts = buildRandomCounts(20);
+    state.builderCounts = sanitizeBuilderCounts(buildRandomCounts(20));
     renderBuilder();
   });
 
@@ -1615,13 +1716,14 @@ function setupBattlePage() {
     const n = Number(stored[card.id]);
     deckCounts[card.id] = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
   }
-  if (!isDeckValid(deckCounts)) {
+  const sanitizedDeckCounts = sanitizeBuilderCounts(deckCounts);
+  if (!isDeckValid(sanitizedDeckCounts)) {
     showBuilderScreen();
     return;
   }
 
   try {
-    initializeBattleFromDeck(deckCounts);
+    initializeBattleFromDeck(sanitizedDeckCounts);
 
     const passReadyBtn = document.getElementById("passReadyBtn");
     if (passReadyBtn) passReadyBtn.addEventListener("click", hidePassOverlay);

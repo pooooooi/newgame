@@ -6,7 +6,7 @@
   <title>Monverse Battle</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="pageBattle">
   <div id="passOverlay" class="passOverlay hidden">
     <div class="passCard">
       <div id="passTitle" class="passTitle">プレイヤー交代</div>
@@ -21,7 +21,7 @@
       <div class="rotateText">バトルは横持ちだと見やすく、操作しやすくなります。</div>
     </div>
   </div>
-  <div id="battleScreen" class="app battleApp compact fitScreen">
+  <div id="battleScreen" class="app battleApp compact">
     <section class="panel battleMainPanel">
       <div class="battleArena">
         <div class="status battleHud">
@@ -78,9 +78,9 @@
 
         <div class="actions">
           <button id="endTurnBtn">ターン終了</button>
-          <button id="resetBtn">構築に戻る</button>
+          <button id="resetBtn">戻る</button>
+          <button id="logOpenBtn" class="mobileLogBtn" type="button">ログ</button>
         </div>
-        <button id="logOpenBtn" class="mobileLogBtn" type="button">ログ</button>
       </div>
     </section>
 

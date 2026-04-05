@@ -197,24 +197,8 @@ h1 {
 }
 
 .leaderCard::after {
-  content: attr(data-hp);
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  min-width: 28px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 235, 198, 0.74);
-  color: #fff7de;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.1;
-  text-align: center;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
-  z-index: 3;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(145, 52, 69, 0.92), rgba(90, 31, 43, 0.92));
+  content: none;
+  display: none;
 }
 
 .leaderCard.enemyLeader {
@@ -225,10 +209,6 @@ h1 {
 .leaderCard.playerLeader {
   border-color: #4b83bb;
   background: linear-gradient(180deg, rgba(28, 58, 96, 0.92), rgba(16, 33, 58, 0.94));
-}
-
-.leaderCard.playerLeader::after {
-  background: linear-gradient(180deg, rgba(54, 114, 192, 0.92), rgba(27, 67, 125, 0.92));
 }
 
 .targetLeader {
@@ -300,7 +280,11 @@ h1 {
 }
 
 .leaderVitals {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .hpBadge {
@@ -1547,7 +1531,7 @@ button:disabled {
     height: 100%;
     padding: 4px;
     display: grid;
-    grid-template-rows: auto auto 1fr auto auto auto;
+    grid-template-rows: auto auto 1fr auto auto auto auto;
     gap: 4px;
     overflow: hidden;
     position: relative;
@@ -1614,21 +1598,18 @@ button:disabled {
     grid-row: 5;
   }
 
-  .battleApp.fitScreen .actions {
+  .battleApp.fitScreen .cardInspect {
     grid-row: 6;
   }
 
-.battleApp.fitScreen .leaderCard {
-  min-height: 50px;
-  padding: 4px 8px 4px 6px;
-  border-radius: 9px;
-}
+  .battleApp.fitScreen .actions {
+    grid-row: 7;
+  }
 
-  .battleApp.fitScreen .leaderCard::after {
-    right: 6px;
-    min-width: 24px;
-    padding: 2px 6px;
-    font-size: 11px;
+  .battleApp.fitScreen .leaderCard {
+    min-height: 50px;
+    padding: 4px 8px 4px 6px;
+    border-radius: 9px;
   }
 
   .battleApp.fitScreen .leaderFace,
@@ -1761,18 +1742,14 @@ button:disabled {
 
   .battleApp.fitScreen .cardInspect {
     display: block;
-    position: absolute;
-    left: 6px;
-    right: 64px;
-    bottom: 36px;
-    z-index: 3;
+    position: static;
     margin: 0;
-    min-height: 28px;
-    padding: 3px 6px;
+    min-height: 24px;
+    padding: 2px 6px;
     border-radius: 8px;
     border: 1px solid rgba(107, 150, 221, 0.72);
     background: rgba(6, 16, 35, 0.78);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(152, 191, 255, 0.08);
   }
 
   .battleApp.fitScreen .inspectTitle {
@@ -1784,7 +1761,7 @@ button:disabled {
     line-height: 1.2;
     color: #d8e7ff;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -1792,7 +1769,7 @@ button:disabled {
   .battleApp.fitScreen .actions {
     margin-top: 0;
     gap: 4px;
-    padding-right: 56px;
+    padding-right: 0;
   }
 
   .battleApp.fitScreen .actions button {
@@ -1807,7 +1784,7 @@ button:disabled {
 
   .battleApp.fitScreen .mobileLogBtn {
     right: 6px;
-    bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
     min-width: 50px;
     min-height: 34px;
     font-size: 11px;
@@ -1885,10 +1862,7 @@ button:disabled {
   }
 
   .battleApp.fitScreen .cardInspect {
-    left: 4px;
-    right: 58px;
-    bottom: 34px;
-    min-height: 24px;
+    min-height: 22px;
     padding: 2px 5px;
   }
 
@@ -2057,7 +2031,7 @@ button:disabled {
   }
 
   .battleApp.compact.fitScreen .battleArena {
-    grid-template-rows: auto auto 1fr auto auto auto;
+    grid-template-rows: auto auto 1fr auto auto auto auto;
   }
 
   .battleApp.compact.fitScreen .missionChip,
@@ -2087,5 +2061,1239 @@ button:disabled {
     width: 12px;
     height: 12px;
     font-size: 7px;
+  }
+}
+
+/* ===== app refresh: title + deck ===== */
+
+.pageTitle,
+.pageDeck {
+  font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+}
+
+.pageTitle {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(120, 210, 255, 0.24), transparent 38%),
+    radial-gradient(circle at 88% 88%, rgba(255, 121, 143, 0.22), transparent 40%),
+    linear-gradient(160deg, #060d1d 0%, #0f2142 52%, #091426 100%);
+}
+
+.pageTitle .titleWrap {
+  min-height: 100dvh;
+  padding: 16px;
+}
+
+.pageTitle .titlePanel {
+  width: min(980px, 100%);
+  border: 1px solid rgba(124, 176, 255, 0.42);
+  border-radius: 28px;
+  padding: clamp(18px, 3.6vw, 36px);
+  text-align: left;
+  background:
+    radial-gradient(circle at 86% 12%, rgba(255, 227, 152, 0.2), transparent 36%),
+    linear-gradient(170deg, rgba(14, 28, 56, 0.92), rgba(7, 15, 31, 0.95));
+  box-shadow:
+    0 28px 60px rgba(2, 9, 22, 0.55),
+    inset 0 0 0 1px rgba(170, 204, 255, 0.12);
+}
+
+.pageTitle .titleKicker {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #9cc5ff;
+  text-transform: uppercase;
+}
+
+.pageTitle .titleMain {
+  margin: 0;
+  font-size: clamp(44px, 10vw, 102px);
+  line-height: 0.95;
+  letter-spacing: 2px;
+  color: #eaf3ff;
+  text-shadow: 0 8px 30px rgba(84, 168, 255, 0.35);
+}
+
+.pageTitle .titleSub {
+  margin: 12px 0 0;
+  max-width: 38ch;
+  color: #cde0ff;
+  font-size: clamp(14px, 2.2vw, 20px);
+  line-height: 1.5;
+}
+
+.pageTitle .titleStage {
+  margin-top: 20px;
+  width: 100%;
+  height: clamp(220px, 44vw, 360px);
+  border-radius: 24px;
+  border: 1px solid rgba(122, 170, 242, 0.45);
+  background:
+    radial-gradient(circle at 20% 15%, rgba(124, 213, 255, 0.2), transparent 36%),
+    radial-gradient(circle at 85% 78%, rgba(255, 138, 161, 0.18), transparent 30%),
+    linear-gradient(180deg, rgba(25, 42, 78, 0.78), rgba(11, 20, 40, 0.92));
+  box-shadow: inset 0 0 30px rgba(13, 22, 44, 0.66);
+}
+
+.pageTitle .titleOrb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(2px);
+}
+
+.pageTitle .titleOrbA {
+  width: 90px;
+  height: 90px;
+  left: 14px;
+  top: 14px;
+  background: radial-gradient(circle, rgba(133, 223, 255, 0.8), rgba(95, 151, 255, 0.18));
+}
+
+.pageTitle .titleOrbB {
+  width: 120px;
+  height: 120px;
+  right: 22px;
+  top: 30px;
+  background: radial-gradient(circle, rgba(255, 197, 129, 0.76), rgba(255, 121, 152, 0.16));
+}
+
+.pageTitle .titleOrbC {
+  width: 70px;
+  height: 70px;
+  right: 90px;
+  bottom: 22px;
+  background: radial-gradient(circle, rgba(167, 171, 255, 0.72), rgba(129, 93, 255, 0.12));
+}
+
+.pageTitle .versusStage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  padding: 14px;
+}
+
+.pageTitle .mascotCard {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(164, 203, 255, 0.45);
+  background: linear-gradient(170deg, rgba(22, 41, 74, 0.8), rgba(10, 21, 45, 0.88));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+}
+
+.pageTitle .mascotCard img {
+  width: clamp(100px, 18vw, 148px);
+  height: clamp(100px, 18vw, 148px);
+  border-radius: 50%;
+  border: 2px solid rgba(223, 238, 255, 0.75);
+}
+
+.pageTitle .mascotCard span {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #dcecff;
+  font-weight: 700;
+}
+
+.pageTitle .catSide {
+  transform: rotate(-4deg);
+}
+
+.pageTitle .dogSide {
+  transform: rotate(4deg);
+}
+
+.pageTitle .vsBadge {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 227, 173, 0.75);
+  color: #fff3d2;
+  font-size: 20px;
+  font-weight: 800;
+  background: radial-gradient(circle at 35% 30%, #ffce74, #cf7c3f 58%, #8c4a1d);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
+}
+
+.pageTitle .titleActions {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pageTitle .titleBtn {
+  min-width: 240px;
+  padding: 13px 18px;
+  border-radius: 14px;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.pageTitle .titleBtnPrimary {
+  border: 1px solid rgba(164, 228, 255, 0.8);
+  background: linear-gradient(180deg, #2f91d2, #1a5f9b);
+  box-shadow: 0 12px 26px rgba(20, 94, 162, 0.35);
+}
+
+.pageTitle .titleBtnPrimary:hover {
+  background: linear-gradient(180deg, #46a8e7, #2574b5);
+}
+
+.pageTitle .titleHint {
+  margin: 0;
+  color: #aec8ee;
+  font-size: 12px;
+}
+
+.pageDeck {
+  background:
+    radial-gradient(circle at 8% 16%, rgba(120, 203, 255, 0.22), transparent 30%),
+    radial-gradient(circle at 85% 84%, rgba(255, 146, 167, 0.2), transparent 36%),
+    linear-gradient(165deg, #071226 0%, #102345 54%, #081325 100%);
+}
+
+.pageDeck .deckApp {
+  max-width: 1280px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 14px;
+}
+
+.pageDeck .panel {
+  border-radius: 20px;
+  border: 1px solid rgba(121, 165, 238, 0.42);
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 230, 170, 0.12), transparent 30%),
+    linear-gradient(170deg, rgba(15, 29, 58, 0.88), rgba(8, 16, 34, 0.94));
+  box-shadow:
+    0 22px 46px rgba(1, 9, 24, 0.45),
+    inset 0 0 0 1px rgba(153, 195, 255, 0.08);
+  padding: 14px;
+}
+
+.pageDeck .deckHeader h1 {
+  margin-bottom: 4px;
+  font-size: clamp(26px, 4vw, 34px);
+  color: #eef5ff;
+}
+
+.pageDeck .deckKicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #92b8ef;
+}
+
+.pageDeck .sub {
+  margin-bottom: 12px;
+  color: #c5d9f8;
+}
+
+.pageDeck .deckStats {
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.pageDeck .deckChip {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border-color: rgba(121, 171, 248, 0.75);
+  background: linear-gradient(180deg, rgba(17, 34, 67, 0.92), rgba(10, 21, 45, 0.94));
+}
+
+.pageDeck .deckChip strong {
+  font-size: 22px;
+  line-height: 1;
+  color: #f3f7ff;
+}
+
+.pageDeck .chipLabel {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #8cb2e6;
+}
+
+.pageDeck #deckStatus.statusGood {
+  color: #7cf7b7;
+}
+
+.pageDeck #deckStatus.statusBad {
+  color: #ff9595;
+}
+
+.pageDeck .deckTools {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pageDeck .deckTools button {
+  flex: 1;
+  min-height: 38px;
+  border-radius: 12px;
+}
+
+.pageDeck .deckCatalogLane {
+  min-height: 0;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(92, 132, 204, 0.58);
+  background: linear-gradient(180deg, rgba(9, 19, 40, 0.72), rgba(9, 18, 38, 0.84));
+}
+
+.pageDeck .deckSectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pageDeck .deckSectionHead h3 {
+  margin: 0;
+  font-size: 13px;
+  color: #d8e7ff;
+}
+
+.pageDeck .deckSectionHead span {
+  font-size: 11px;
+  color: #99b6df;
+}
+
+.pageDeck .catalog {
+  display: grid;
+  gap: 8px;
+  max-height: min(64vh, 720px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.pageDeck .catalogRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(97, 146, 225, 0.56);
+  background:
+    radial-gradient(circle at 92% 18%, rgba(146, 198, 255, 0.2), transparent 32%),
+    linear-gradient(170deg, rgba(18, 37, 72, 0.88), rgba(10, 21, 44, 0.94));
+}
+
+.pageDeck .catalogRow strong {
+  color: #eef5ff;
+  font-size: 14px;
+}
+
+.pageDeck .catalogMeta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #a9c2e8;
+  line-height: 1.4;
+}
+
+.pageDeck .catalogRowLocked {
+  border-color: rgba(186, 120, 134, 0.5);
+  background:
+    radial-gradient(circle at 92% 18%, rgba(255, 181, 193, 0.12), transparent 32%),
+    linear-gradient(170deg, rgba(55, 29, 42, 0.72), rgba(20, 13, 25, 0.88));
+}
+
+.pageDeck .catalogLock {
+  margin-top: 5px;
+  font-size: 10px;
+  color: #ffbfca;
+}
+
+.pageDeck .rowControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pageDeck .rowControls button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pageDeck .qty {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #f0f7ff;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(121, 168, 238, 0.7);
+  background: rgba(10, 23, 47, 0.82);
+}
+
+.pageDeck .deckSidePanel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.pageDeck .deckSummaryLog {
+  min-height: min(54vh, 560px);
+  max-height: min(62vh, 680px);
+  padding: 10px;
+  border-radius: 14px;
+  border-color: rgba(105, 148, 220, 0.64);
+  background: rgba(8, 16, 34, 0.82);
+}
+
+.pageDeck .deckSummaryLog > div {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(103, 138, 200, 0.24);
+  font-size: 13px;
+  color: #d7e7ff;
+}
+
+.pageDeck .deckSummaryLog > div:last-child {
+  border-bottom: none;
+}
+
+.pageDeck .small {
+  color: #98b7e3;
+  font-size: 12px;
+}
+
+.pageDeck .deckLaunchActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pageDeck .deckLaunchActions button {
+  min-height: 44px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.pageDeck #startGameBtn {
+  border-color: rgba(98, 237, 255, 0.9);
+  box-shadow: 0 10px 22px rgba(36, 134, 219, 0.24);
+}
+
+.pageDeck #startPvpBtn {
+  border-color: rgba(255, 203, 118, 0.74);
+  box-shadow: 0 10px 22px rgba(156, 100, 20, 0.24);
+}
+
+@media (max-width: 980px) {
+  .pageTitle .titlePanel {
+    border-radius: 22px;
+  }
+
+  .pageTitle .versusStage {
+    gap: 10px;
+  }
+
+  .pageDeck .deckApp {
+    grid-template-columns: 1fr;
+  }
+
+  .pageDeck .deckSummaryLog {
+    min-height: 220px;
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 760px) {
+  .pageTitle .titleWrap {
+    padding: 10px;
+  }
+
+  .pageTitle .titlePanel {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .pageTitle .titleSub {
+    font-size: 14px;
+  }
+
+  .pageTitle .titleStage {
+    height: 220px;
+    border-radius: 16px;
+  }
+
+  .pageTitle .mascotCard {
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .pageTitle .mascotCard img {
+    width: 82px;
+    height: 82px;
+  }
+
+  .pageTitle .vsBadge {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .pageTitle .titleBtn {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .pageDeck {
+    padding: 8px;
+  }
+
+  .pageDeck .panel {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .pageDeck .deckStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pageDeck .deckChip strong {
+    font-size: 18px;
+  }
+
+  .pageDeck .deckTools {
+    gap: 6px;
+  }
+
+  .pageDeck .deckTools button,
+  .pageDeck .deckLaunchActions button {
+    min-height: 40px;
+    font-size: 12px;
+  }
+
+  .pageDeck .catalog {
+    max-height: 46vh;
+  }
+
+  .pageDeck .catalogRow {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .pageDeck .catalogRow strong {
+    font-size: 13px;
+  }
+
+  .pageDeck .catalogMeta {
+    font-size: 10px;
+  }
+
+  .pageDeck .rowControls button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .pageDeck .qty {
+    min-width: 32px;
+    font-size: 13px;
+  }
+
+  .pageDeck .deckLaunchActions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== battle smartphone reset ===== */
+
+@media (max-width: 760px) {
+  .battleApp.compact {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .battleApp.compact .battleMainPanel {
+    padding: 6px;
+    border-radius: 14px;
+  }
+
+  .battleApp.compact .battleArena {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+    overflow: visible;
+  }
+
+  .battleApp.compact .status,
+  .battleApp.compact .battleHud {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin-bottom: 0;
+  }
+
+  .battleApp.compact .chip {
+    min-height: 30px;
+    padding: 4px 5px;
+    border-radius: 9px;
+  }
+
+  .battleApp.compact .chipIcon {
+    width: 14px;
+    height: 14px;
+    font-size: 8px;
+  }
+
+  .battleApp.compact .battleHud .chip strong,
+  .battleApp.compact .missionChip strong {
+    font-size: 12px;
+  }
+
+  .battleApp.compact .missionChip {
+    display: none;
+  }
+
+  .battleApp.compact .leaderRow {
+    margin: 0;
+    gap: 4px;
+  }
+
+  .battleApp.compact .leaderTop,
+  .battleApp.compact .leaderBottom {
+    margin: 0;
+  }
+
+  .battleApp.compact .leaderCard {
+    min-height: 44px;
+    padding: 4px 6px;
+    border-radius: 10px;
+  }
+
+  .battleApp.compact .leaderMascot {
+    width: 28px;
+    height: 28px;
+  }
+
+  .battleApp.compact .leaderVitals {
+    gap: 4px;
+  }
+
+  .battleApp.compact .hpBadge {
+    min-width: 24px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  .battleApp.compact .board {
+    gap: 4px;
+    margin-bottom: 0;
+  }
+
+  .battleApp.compact .lane {
+    min-height: 0;
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .battleApp.compact .lane h3 {
+    display: none;
+  }
+
+  .battleApp.compact .boardRow,
+  .battleApp.compact .hand {
+    gap: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0 4px;
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 2px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .battleApp.compact .boardRow > *,
+  .battleApp.compact .hand > * {
+    scroll-snap-align: start;
+  }
+
+  .battleApp.compact .battleCard,
+  .battleApp.compact .emptySlot {
+    width: 68px;
+    min-height: 94px;
+    padding: 3px;
+    gap: 3px;
+    border-radius: 9px;
+  }
+
+  .battleApp.compact #hand .battleCard,
+  .battleApp.compact .hand .battleCard {
+    width: 72px;
+    min-height: 98px;
+  }
+
+  .battleApp.compact .cardName {
+    font-size: 8px;
+    max-height: 2.1em;
+  }
+
+  .battleApp.compact .costOrb {
+    min-width: 16px;
+    height: 16px;
+    font-size: 9px;
+  }
+
+  .battleApp.compact .cardArt {
+    min-height: 38px;
+    padding: 3px;
+  }
+
+  .battleApp.compact .artSigil {
+    width: 12px;
+    height: 12px;
+    font-size: 7px;
+  }
+
+  .battleApp.compact .cardBottom {
+    gap: 3px;
+  }
+
+  .battleApp.compact .stat {
+    min-width: 16px;
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+
+  .battleApp.compact .keymark {
+    width: 11px;
+    height: 11px;
+    font-size: 7px;
+  }
+
+  .battleApp.compact .evoBtn {
+    margin-top: 2px;
+    min-height: 0;
+    padding: 3px 2px;
+    font-size: 8px;
+  }
+
+  .battleApp.compact .handLane {
+    margin: 0;
+  }
+
+  .battleApp.compact .hand {
+    min-height: 96px;
+    padding: 4px;
+    border-radius: 9px;
+  }
+
+  .battleApp.compact .miniInfoBtn {
+    width: 15px;
+    height: 15px;
+    right: 3px;
+    bottom: 3px;
+    font-size: 8px;
+  }
+
+  .battleApp.compact .cardInspect {
+    margin: 0;
+    min-height: 22px;
+    padding: 3px 6px;
+    border-radius: 8px;
+  }
+
+  .battleApp.compact .inspectTitle {
+    display: none;
+  }
+
+  .battleApp.compact .inspectText {
+    font-size: 9px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .battleApp.compact .actions {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 6px;
+    align-items: center;
+    margin-top: 0;
+  }
+
+  .battleApp.compact .actions button {
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 11px;
+    border-radius: 12px;
+  }
+
+  .battleApp.compact #endTurnBtn {
+    min-width: 0;
+  }
+
+  .battleApp.compact #resetBtn,
+  .battleApp.compact #logOpenBtn {
+    min-width: 52px;
+  }
+
+  .battleApp.compact .mobileLogBtn {
+    position: static;
+    right: auto;
+    bottom: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    min-width: 52px;
+    min-height: 34px;
+    box-shadow: none;
+    font-size: 11px;
+  }
+
+  .battleApp.compact .battleLogPanel {
+    display: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .battleApp.compact .battleCard,
+  .battleApp.compact .emptySlot {
+    width: 64px;
+    min-height: 90px;
+  }
+
+  .battleApp.compact #hand .battleCard,
+  .battleApp.compact .hand .battleCard {
+    width: 68px;
+    min-height: 94px;
+  }
+
+  .battleApp.compact .chip {
+    min-height: 28px;
+    padding: 3px 4px;
+  }
+
+  .battleApp.compact .battleHud .chip strong {
+    font-size: 11px;
+  }
+
+  .battleApp.compact .actions button {
+    min-height: 32px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+}
+
+/* ===== battle polish refresh ===== */
+
+.pageBattle {
+  font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(86, 128, 255, 0.18), transparent 22%),
+    radial-gradient(circle at 84% 12%, rgba(255, 120, 135, 0.14), transparent 18%),
+    radial-gradient(circle at 52% 58%, rgba(84, 208, 255, 0.1), transparent 30%),
+    linear-gradient(180deg, #08101f 0%, #0a1731 42%, #091325 100%);
+}
+
+.pageBattle::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(109, 179, 255, 0.18), transparent 28%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.03), transparent 40%, rgba(255, 255, 255, 0.02) 60%, transparent 72%);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+
+.pageBattle button {
+  font-family: inherit;
+}
+
+.pageBattle .battleMainPanel {
+  background:
+    linear-gradient(180deg, rgba(14, 26, 49, 0.88), rgba(8, 16, 33, 0.94)),
+    radial-gradient(circle at top, rgba(116, 176, 255, 0.1), transparent 36%);
+  border-color: rgba(101, 146, 217, 0.52);
+  box-shadow:
+    0 20px 48px rgba(3, 7, 20, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.pageBattle .battleArena {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-color: rgba(113, 170, 255, 0.52);
+  background:
+    radial-gradient(circle at 50% 48%, rgba(86, 135, 255, 0.22), transparent 32%),
+    radial-gradient(circle at 16% 18%, rgba(255, 130, 138, 0.16), transparent 18%),
+    radial-gradient(circle at 86% 82%, rgba(86, 220, 255, 0.12), transparent 20%),
+    linear-gradient(180deg, rgba(7, 18, 37, 0.92), rgba(8, 18, 35, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(171, 214, 255, 0.05),
+    inset 0 0 42px rgba(4, 9, 26, 0.72),
+    0 16px 38px rgba(2, 7, 18, 0.42);
+}
+
+.pageBattle .battleArena::before {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(117, 189, 255, 0.12), transparent 22%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.028),
+      rgba(255, 255, 255, 0.028) 2px,
+      transparent 2px,
+      transparent 14px
+    );
+  opacity: 0.72;
+  animation: battleArenaDrift 18s linear infinite;
+  z-index: 0;
+}
+
+.pageBattle .battleArena::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 22%, transparent 78%, rgba(255, 255, 255, 0.03)),
+    radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.06), transparent 34%);
+  z-index: 0;
+}
+
+.pageBattle .battleArena > * {
+  position: relative;
+  z-index: 1;
+}
+
+.pageBattle .battleHud .chip,
+.pageBattle .missionChip {
+  border-color: rgba(123, 176, 255, 0.62);
+  background:
+    linear-gradient(180deg, rgba(12, 30, 61, 0.9), rgba(8, 19, 40, 0.94)),
+    radial-gradient(circle at top, rgba(146, 205, 255, 0.14), transparent 68%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 18px rgba(4, 10, 26, 0.28);
+  backdrop-filter: blur(8px);
+}
+
+.pageBattle .battleHud .chip strong,
+.pageBattle .missionChip strong {
+  text-shadow: 0 0 12px rgba(153, 208, 255, 0.22);
+}
+
+.pageBattle .leaderCard {
+  backdrop-filter: blur(10px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 12px 28px rgba(3, 8, 22, 0.34);
+}
+
+.pageBattle .leaderCard.enemyLeader {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 240, 0.08),
+    0 14px 28px rgba(55, 13, 20, 0.32);
+}
+
+.pageBattle .leaderCard.playerLeader {
+  box-shadow:
+    inset 0 1px 0 rgba(233, 247, 255, 0.09),
+    0 14px 28px rgba(8, 28, 68, 0.3);
+}
+
+.pageBattle .leaderMascot {
+  box-shadow:
+    inset 0 0 16px rgba(255, 255, 255, 0.18),
+    0 0 0 2px rgba(255, 255, 255, 0.07),
+    0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+.pageBattle .hpBadge {
+  min-width: 34px;
+  background:
+    linear-gradient(180deg, rgba(242, 132, 149, 0.96), rgba(131, 41, 58, 0.94)),
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.16), transparent 50%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 8px 16px rgba(73, 18, 29, 0.28);
+}
+
+.pageBattle .playerLeader .hpBadge {
+  background:
+    linear-gradient(180deg, rgba(109, 176, 255, 0.96), rgba(34, 78, 144, 0.94)),
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.14), transparent 50%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 8px 16px rgba(15, 35, 77, 0.28);
+}
+
+.pageBattle .lane {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(10, 20, 39, 0.74), rgba(7, 14, 28, 0.82)),
+    radial-gradient(circle at center, rgba(110, 174, 255, 0.08), transparent 55%);
+  box-shadow:
+    inset 0 0 0 1px rgba(160, 205, 255, 0.03),
+    inset 0 18px 28px rgba(255, 255, 255, 0.015);
+}
+
+.pageBattle .enemyLane::before,
+.pageBattle .playerLane::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.pageBattle .enemyLane::before {
+  background: linear-gradient(90deg, rgba(188, 75, 98, 0.1), transparent 30%, transparent 70%, rgba(188, 75, 98, 0.08));
+}
+
+.pageBattle .playerLane::before {
+  background: linear-gradient(90deg, rgba(76, 148, 227, 0.12), transparent 30%, transparent 70%, rgba(76, 148, 227, 0.08));
+}
+
+.pageBattle .boardRow,
+.pageBattle .hand {
+  padding-right: 8px;
+}
+
+.pageBattle .battleCard {
+  border-color: rgba(124, 171, 248, 0.68);
+  background:
+    linear-gradient(180deg, rgba(35, 59, 106, 0.95), rgba(15, 27, 51, 0.97)),
+    radial-gradient(circle at top, rgba(153, 215, 255, 0.1), transparent 60%);
+  box-shadow:
+    0 10px 22px rgba(4, 10, 28, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.pageBattle .battleCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.18), transparent 28%, transparent 72%, rgba(255, 255, 255, 0.05));
+}
+
+.pageBattle .battleCard:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 28px rgba(4, 10, 28, 0.42),
+    0 0 18px rgba(106, 170, 255, 0.16);
+}
+
+.pageBattle .emptySlot {
+  border-color: rgba(94, 138, 209, 0.7);
+  background:
+    linear-gradient(180deg, rgba(12, 23, 44, 0.76), rgba(8, 17, 34, 0.92)),
+    radial-gradient(circle at center, rgba(110, 174, 255, 0.07), transparent 58%);
+}
+
+.pageBattle .costOrb,
+.pageBattle .stat,
+.pageBattle .miniInfoBtn {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 4px 10px rgba(4, 10, 26, 0.24);
+}
+
+.pageBattle .cardInspect {
+  background:
+    linear-gradient(180deg, rgba(8, 18, 36, 0.96), rgba(5, 12, 24, 0.98)),
+    radial-gradient(circle at 30% 0, rgba(111, 180, 255, 0.08), transparent 45%);
+  border-color: rgba(102, 152, 230, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 20px rgba(2, 8, 20, 0.28);
+}
+
+.pageBattle .inspectText {
+  color: #eef5ff;
+  letter-spacing: 0.01em;
+}
+
+.pageBattle .actions button {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 10px 20px rgba(4, 10, 26, 0.24);
+}
+
+.pageBattle #endTurnBtn {
+  background:
+    linear-gradient(180deg, rgba(52, 140, 255, 0.96), rgba(26, 76, 167, 0.98)),
+    radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.16), transparent 40%);
+  border-color: rgba(116, 218, 255, 0.95);
+  text-shadow: 0 0 12px rgba(209, 241, 255, 0.24);
+}
+
+.pageBattle #resetBtn,
+.pageBattle #logOpenBtn {
+  background:
+    linear-gradient(180deg, rgba(26, 49, 88, 0.96), rgba(16, 30, 53, 0.98)),
+    radial-gradient(circle at top, rgba(152, 202, 255, 0.08), transparent 62%);
+}
+
+@keyframes battleArenaDrift {
+  0% {
+    transform: translate3d(-1.5%, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(1.5%, -1%, 0) rotate(0.4deg);
+  }
+  100% {
+    transform: translate3d(-1.5%, 0, 0) rotate(0deg);
+  }
+}
+
+@media (max-width: 760px) {
+  .pageBattle .battleApp.compact .battleMainPanel {
+    padding: 5px;
+    border-radius: 14px;
+  }
+
+  .pageBattle .battleApp.compact .battleArena {
+    gap: 5px;
+    padding: 5px;
+    border-radius: 12px;
+  }
+
+  .pageBattle .battleApp.compact .chip {
+    min-height: 28px;
+    padding: 3px 4px;
+  }
+
+  .pageBattle .battleApp.compact .chipIcon {
+    width: 13px;
+    height: 13px;
+    font-size: 8px;
+  }
+
+  .pageBattle .battleApp.compact .battleHud .chip strong {
+    font-size: 11px;
+  }
+
+  .pageBattle .battleApp.compact .leaderCard {
+    min-height: 42px;
+    padding: 4px 8px;
+  }
+
+  .pageBattle .battleApp.compact .leaderMascot {
+    width: 29px;
+    height: 29px;
+  }
+
+  .pageBattle .battleApp.compact .hpBadge {
+    min-width: 28px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  .pageBattle .battleApp.compact .boardRow,
+  .pageBattle .battleApp.compact .hand {
+    gap: 5px;
+    padding: 2px 8px 5px 0;
+    scrollbar-width: none;
+  }
+
+  .pageBattle .battleApp.compact .boardRow::-webkit-scrollbar,
+  .pageBattle .battleApp.compact .hand::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pageBattle .battleApp.compact .battleCard,
+  .pageBattle .battleApp.compact .emptySlot {
+    width: 66px;
+    min-height: 92px;
+    border-radius: 10px;
+  }
+
+  .pageBattle .battleApp.compact #hand .battleCard,
+  .pageBattle .battleApp.compact .hand .battleCard {
+    width: 70px;
+    min-height: 96px;
+  }
+
+  .pageBattle .battleApp.compact .cardInspect {
+    min-height: 34px;
+    padding: 4px 8px;
+    border-radius: 9px;
+  }
+
+  .pageBattle .battleApp.compact .inspectText {
+    font-size: 10px;
+    line-height: 1.28;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: clip;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+
+  .pageBattle .battleApp.compact .actions {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 5px;
+  }
+
+  .pageBattle .battleApp.compact .actions button {
+    min-height: 32px;
+    padding: 0 9px;
+    font-size: 10px;
+    border-radius: 11px;
+  }
+
+  .pageBattle .battleApp.compact #resetBtn,
+  .pageBattle .battleApp.compact #logOpenBtn,
+  .pageBattle .battleApp.compact .mobileLogBtn {
+    min-width: 46px;
+  }
+}
+
+@media (max-width: 430px) {
+  .pageBattle .battleApp.compact .battleCard,
+  .pageBattle .battleApp.compact .emptySlot {
+    width: 62px;
+    min-height: 88px;
+  }
+
+  .pageBattle .battleApp.compact #hand .battleCard,
+  .pageBattle .battleApp.compact .hand .battleCard {
+    width: 66px;
+    min-height: 92px;
+  }
+
+  .pageBattle .battleApp.compact .cardName {
+    font-size: 8px;
+  }
+
+  .pageBattle .battleApp.compact .inspectText {
+    font-size: 9px;
   }
 }

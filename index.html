@@ -6,28 +6,33 @@
   <title>Monverse Title</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="pageTitle">
   <main class="titleWrap">
     <section class="titlePanel">
-      <p class="titleKicker">Pocket x Shadow Card Duel</p>
+      <p class="titleKicker">Pocket Duel Arena</p>
       <h1 class="titleMain">MONVERSE</h1>
-      <p class="titleSub">猫拳舞う、進化とテンポのカードバトル。</p>
+      <p class="titleSub">猫と犬のスピードバトル。手札を操り、進化で勝ち切れ。</p>
 
       <div class="titleStage">
-        <div class="moonGlow"></div>
-        <div class="kungfuCat" aria-label="kungfu cat">
-          <div class="catHead">🐱</div>
-          <div class="catBody"></div>
-          <div class="paw pawLeft"></div>
-          <div class="paw pawRight"></div>
-          <div class="leg legLeft"></div>
-          <div class="leg legRight"></div>
-          <div class="tail"></div>
+        <div class="titleOrb titleOrbA"></div>
+        <div class="titleOrb titleOrbB"></div>
+        <div class="titleOrb titleOrbC"></div>
+        <div class="versusStage">
+          <article class="mascotCard catSide">
+            <img src="assets/leader-cat.svg" alt="Cat Leader" />
+            <span>CAT</span>
+          </article>
+          <div class="vsBadge">VS</div>
+          <article class="mascotCard dogSide">
+            <img src="assets/leader-dog.svg" alt="Dog Leader" />
+            <span>DOG</span>
+          </article>
         </div>
       </div>
 
       <div class="titleActions">
-        <a class="titleBtn" href="deck.html">デッキ構築へ</a>
+        <a class="titleBtn titleBtnPrimary" href="deck.html">デッキ構築へ</a>
+        <p class="titleHint">最短30秒で構築して即バトル開始</p>
       </div>
     </section>
   </main>
