@@ -32,9 +32,8 @@
         </div>
         <div class="chip missionChip">ミッション: <strong id="missionText">未設定</strong></div>
 
-        <div class="leaderRow">
+        <div class="leaderRow leaderTop">
           <div id="enemyLeaderAvatar" class="leaderCard enemyLeader targetLeader"></div>
-          <div id="playerLeaderAvatar" class="leaderCard playerLeader"></div>
         </div>
 
         <div class="board">
@@ -48,9 +47,18 @@
           </div>
         </div>
 
+        <div class="leaderRow leaderBottom">
+          <div id="playerLeaderAvatar" class="leaderCard playerLeader"></div>
+        </div>
+
         <div class="lane handLane">
           <h3>手札</h3>
           <div id="hand" class="hand"></div>
+        </div>
+
+        <div id="cardInspect" class="cardInspect">
+          <div id="inspectTitle" class="inspectTitle">カード詳細</div>
+          <div id="inspectText" class="inspectText">カードの i ボタンで効果を確認できます。</div>
         </div>
 
         <div class="actions">

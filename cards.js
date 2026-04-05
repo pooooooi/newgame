@@ -19,7 +19,7 @@
   },
   { id: "unit_scholar_owl", name: "スカラーオウル", cost: 2, atk: 2, hp: 2, type: "unit", tags: ["holy"], onPlay: [{ type: "draw", amount: 1 }], evolvesTo: "evo_scholar" },
   { id: "unit_alchemist_fox", name: "アルケミーフォックス", cost: 3, atk: 2, hp: 3, type: "unit", tags: ["shadow"], onPlay: [{ type: "damage_random_enemy_unit", amount: 2 }], evolvesTo: "evo_alchemist" },
-  { id: "unit_priest_deer", name: "プリーストディア", cost: 3, atk: 2, hp: 4, type: "unit", tags: ["holy"], onPlay: [{ type: "heal_leader", amount: 2 }] },
+  { id: "unit_priest_deer", name: "プリーストディア", cost: 3, atk: 2, hp: 4, type: "unit", tags: ["holy"], onPlay: [{ type: "heal_leader", amount: 2 }], evolvesTo: "evo_priest_deer" },
   { id: "unit_seed_sprite", name: "シードスプライト", cost: 1, atk: 1, hp: 1, type: "unit", tags: ["forest"], onPlay: [{ type: "summon", cardId: "token_fairy", count: 1 }] },
   { id: "unit_drum_bear", name: "ドラムベア", cost: 4, atk: 3, hp: 5, type: "unit", tags: ["neutral"], onPlay: [{ type: "buff_all_allies", atk: 1, hp: 0 }] },
   { id: "unit_frost_witch", name: "フロストウィッチ", cost: 4, atk: 3, hp: 3, type: "unit", tags: ["sea"], onPlay: [{ type: "damage_all_enemy_units", amount: 1 }] },
@@ -36,8 +36,8 @@
     onDeath: [{ type: "damage_enemy_leader", amount: 2 }],
     combo: { tag: "shadow", threshold: 2, text: "連携2: 相手リーダーに1ダメージ", effects: [{ type: "damage_enemy_leader", amount: 1 }] }
   },
-  { id: "unit_blade_angel", name: "ブレードエンジェル", cost: 5, atk: 3, hp: 5, type: "unit", tags: ["holy"], keywords: ["storm"] },
-  { id: "unit_sentinel_crab", name: "センチネルクラブ", cost: 3, atk: 2, hp: 5, type: "unit", tags: ["sea"], keywords: ["ward"] },
+  { id: "unit_blade_angel", name: "ブレードエンジェル", cost: 5, atk: 3, hp: 5, type: "unit", tags: ["holy"], keywords: ["storm"], evolvesTo: "evo_blade_angel" },
+  { id: "unit_sentinel_crab", name: "センチネルクラブ", cost: 3, atk: 2, hp: 5, type: "unit", tags: ["sea"], keywords: ["ward"], evolvesTo: "evo_sentinel_crab" },
   {
     id: "unit_venge_dragon",
     name: "ヴェンジドラゴン",
@@ -49,6 +49,9 @@
     keywords: ["storm"],
     awakening: { hpAtMost: 10, text: "覚醒: 相手リーダーに3ダメージ", effects: [{ type: "damage_enemy_leader", amount: 3 }] }
   },
+  { id: "unit_bramble_guard", name: "ブランブルガード", cost: 2, atk: 1, hp: 5, type: "unit", tags: ["forest"], keywords: ["ward"], evolvesTo: "evo_bramble_guard" },
+  { id: "unit_moon_blade", name: "ムーンブレード", cost: 3, atk: 3, hp: 2, type: "unit", tags: ["holy"], keywords: ["rush"], evolvesTo: "evo_moon_blade" },
+  { id: "unit_grave_baron", name: "グレイブバロン", cost: 5, atk: 4, hp: 4, type: "unit", tags: ["shadow"], onPlay: [{ type: "summon", cardId: "token_zombie", count: 1 }], evolvesTo: "evo_grave_baron" },
 
   { id: "spell_heal", name: "ヒールベリー", cost: 2, type: "spell", tags: ["holy"], effects: [{ type: "heal_leader", amount: 3 }] },
   { id: "spell_fire", name: "ファイアボルト", cost: 2, type: "spell", tags: ["dragon"], effects: [{ type: "damage_enemy_unit_or_leader", amount: 3, leaderFallback: 2 }] },
@@ -89,6 +92,9 @@
     effects: [{ type: "heal_leader", amount: 3 }],
     awakening: { hpAtMost: 10, text: "覚醒: 相手全体に2ダメージ", effects: [{ type: "damage_all_enemy_units", amount: 2 }] }
   },
+  { id: "spell_tactical_draw", name: "タクティカルドロー", cost: 1, type: "spell", tags: ["neutral"], effects: [{ type: "draw", amount: 1 }, { type: "buff_random_ally", atk: 1, hp: 0 }] },
+  { id: "spell_dragon_roar", name: "ドラゴンロアー", cost: 3, type: "spell", tags: ["dragon"], effects: [{ type: "damage_enemy_leader", amount: 2 }, { type: "draw", amount: 1 }] },
+  { id: "spell_growth_signal", name: "グロースシグナル", cost: 2, type: "spell", tags: ["forest"], effects: [{ type: "summon", cardId: "token_fairy", count: 1 }, { type: "buff_random_ally", atk: 1, hp: 1 }] },
   {
     id: "token_coin",
     name: "コイン",
@@ -107,6 +113,12 @@
   { id: "evo_sky_drake", name: "テンペストドラゴン", cost: 3, atk: 7, hp: 6, type: "evolution", tags: ["dragon"], evolvesFrom: "unit_sky_drake", grantsKeywords: ["storm"] },
   { id: "evo_scholar", name: "アークオウル", cost: 2, atk: 4, hp: 4, type: "evolution", tags: ["holy"], evolvesFrom: "unit_scholar_owl", onEvolve: [{ type: "draw", amount: 1 }] },
   { id: "evo_alchemist", name: "エルダーアルケミー", cost: 2, atk: 4, hp: 5, type: "evolution", tags: ["shadow"], evolvesFrom: "unit_alchemist_fox", onEvolve: [{ type: "damage_all_enemy_units", amount: 1 }] },
+  { id: "evo_priest_deer", name: "セイントディア", cost: 2, atk: 4, hp: 6, type: "evolution", tags: ["holy"], evolvesFrom: "unit_priest_deer", onEvolve: [{ type: "heal_leader", amount: 3 }] },
+  { id: "evo_sentinel_crab", name: "アビスセンチネル", cost: 2, atk: 4, hp: 7, type: "evolution", tags: ["sea"], evolvesFrom: "unit_sentinel_crab", grantsKeywords: ["ward"] },
+  { id: "evo_blade_angel", name: "ヴァルキリーエンジェル", cost: 3, atk: 6, hp: 6, type: "evolution", tags: ["holy"], evolvesFrom: "unit_blade_angel", grantsKeywords: ["storm"] },
+  { id: "evo_bramble_guard", name: "スパインブランブル", cost: 2, atk: 3, hp: 8, type: "evolution", tags: ["forest"], evolvesFrom: "unit_bramble_guard", grantsKeywords: ["ward"] },
+  { id: "evo_moon_blade", name: "ルナブレード", cost: 2, atk: 5, hp: 4, type: "evolution", tags: ["holy"], evolvesFrom: "unit_moon_blade", grantsKeywords: ["storm"] },
+  { id: "evo_grave_baron", name: "ナイトメアバロン", cost: 3, atk: 6, hp: 6, type: "evolution", tags: ["shadow"], evolvesFrom: "unit_grave_baron", onEvolve: [{ type: "summon", cardId: "token_zombie", count: 1 }] },
 
   { id: "token_fairy", name: "フェアリー", cost: 1, atk: 1, hp: 1, type: "unit", tags: ["forest"], collectible: false },
   { id: "token_zombie", name: "ゾンビ", cost: 1, atk: 2, hp: 1, type: "unit", tags: ["shadow"], keywords: ["rush"], collectible: false }

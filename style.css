@@ -117,9 +117,18 @@ h1 {
 
 .leaderRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
   margin-bottom: 10px;
+}
+
+.leaderTop {
+  margin-bottom: 8px;
+}
+
+.leaderBottom {
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 .leaderCard {
@@ -199,7 +208,7 @@ h1 {
 .battleArena {
   border: 1px solid rgba(89, 129, 191, 0.55);
   border-radius: 14px;
-  padding: 10px;
+  padding: 8px;
   background:
     radial-gradient(circle at 50% 48%, rgba(125, 171, 255, 0.16), transparent 38%),
     linear-gradient(180deg, rgba(10, 22, 44, 0.68), rgba(6, 15, 33, 0.72));
@@ -208,16 +217,16 @@ h1 {
 
 .board {
   display: grid;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .lane {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 10px;
+  padding: 8px;
   background: rgba(4, 12, 28, 0.55);
-  min-height: 110px;
+  min-height: 96px;
 }
 
 .enemyLane {
@@ -233,8 +242,8 @@ h1 {
 }
 
 .lane h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
+  margin: 0 0 6px;
+  font-size: 12px;
   color: #c8d6fa;
   letter-spacing: 0.2px;
 }
@@ -277,8 +286,8 @@ h1 {
 }
 
 .battleCard {
-  width: 126px;
-  min-height: 186px;
+  width: 110px;
+  min-height: 160px;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   gap: 6px;
@@ -327,11 +336,13 @@ h1 {
 }
 
 .cardName {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   color: #f6fbff;
-  line-height: 1.2;
+  line-height: 1.1;
   word-break: break-word;
+  max-height: 2.2em;
+  overflow: hidden;
 }
 
 .costOrb {
@@ -399,6 +410,7 @@ h1 {
   background: rgba(0, 0, 0, 0.28);
   padding: 2px 6px;
   border-radius: 999px;
+  display: none;
 }
 
 .art-dragon { background: linear-gradient(145deg, rgba(178, 91, 72, 0.42), rgba(84, 32, 25, 0.52)); }
@@ -416,6 +428,7 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px;
   padding: 3px 5px;
+  display: none;
 }
 
 .cardBottom {
@@ -460,9 +473,63 @@ h1 {
   background: rgba(39, 63, 108, 0.6);
 }
 
+.keymarks {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.keymark {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #7ea4dc;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: #ecf4ff;
+  background: rgba(20, 42, 77, 0.85);
+}
+
+.key-ward {
+  border-color: #e1bf70;
+  background: rgba(86, 63, 18, 0.82);
+}
+
+.key-rush {
+  border-color: #eea35f;
+  background: rgba(92, 44, 16, 0.82);
+}
+
+.key-storm {
+  border-color: #75cbff;
+  background: rgba(20, 52, 99, 0.82);
+}
+
+.key-spell {
+  border-color: #ab90f2;
+  background: rgba(52, 34, 89, 0.86);
+}
+
+.battleCard.kw-ward {
+  clip-path: polygon(8% 0, 92% 0, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0 92%, 0 8%);
+  border-color: #dfc27b;
+  box-shadow: inset 0 0 0 1px rgba(223, 194, 123, 0.55);
+}
+
+.battleCard.kw-rush {
+  border-color: #ea9d59;
+  box-shadow: inset 0 0 0 1px rgba(234, 157, 89, 0.45);
+}
+
+.battleCard.kw-storm {
+  border-color: #72bfff;
+  box-shadow: inset 0 0 0 1px rgba(114, 191, 255, 0.45), 0 0 10px rgba(114, 191, 255, 0.2);
+}
+
 .emptySlot {
-  width: 126px;
-  min-height: 186px;
+  width: 110px;
+  min-height: 160px;
   border: 1px dashed #466091;
   border-radius: 11px;
   display: grid;
@@ -475,7 +542,7 @@ h1 {
 /* ===== hand / preview ===== */
 
 .hand {
-  min-height: 214px;
+  min-height: 150px;
   border: 1px dashed #3c5480;
   border-radius: 11px;
   padding: 8px;
@@ -484,20 +551,16 @@ h1 {
 
 #hand .battleCard,
 .hand .battleCard {
-  width: 146px;
-  min-height: 220px;
+  width: 116px;
+  min-height: 168px;
 }
 
 #hand .battleCard .cardText,
 .hand .battleCard .cardText {
-  display: block;
-  max-height: 74px;
-  overflow-y: auto;
-  font-size: 11px;
-  line-height: 1.3;
+  display: none;
 }
 
-.cardPreview {
+.cardInspect {
   margin-top: 6px;
   border: 1px solid #466393;
   border-radius: 8px;
@@ -506,20 +569,34 @@ h1 {
   min-height: 52px;
 }
 
-.previewName {
+.inspectTitle {
   font-size: 12px;
   color: #e8f0ff;
   margin-bottom: 2px;
+  font-weight: 700;
 }
 
-.previewText {
+.inspectText {
   font-size: 11px;
   color: #b8c9e8;
   line-height: 1.3;
 }
 
 .miniInfoBtn {
-  display: none;
+  display: grid;
+  place-items: center;
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid #7fa9e4;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  background: linear-gradient(180deg, #234d8a, #183868);
 }
 
 /* ===== actions ===== */
@@ -527,7 +604,7 @@ h1 {
 .actions {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
 
@@ -861,13 +938,13 @@ button:disabled {
   }
 
   .boardRow {
-    min-height: 166px;
+    min-height: 130px;
   }
 
   .battleCard,
   .emptySlot {
-    width: 110px;
-    min-height: 164px;
+    width: 90px;
+    min-height: 126px;
   }
 
   .cardName {
@@ -896,18 +973,30 @@ button:disabled {
   }
 
   .hand {
-    min-height: 208px;
+    min-height: 124px;
   }
 
   #hand .battleCard,
   .hand .battleCard {
-    width: 136px;
-    min-height: 206px;
+    width: 98px;
+    min-height: 136px;
   }
 
   #hand .battleCard .cardText,
   .hand .battleCard .cardText {
-    max-height: 72px;
+    display: none;
+  }
+
+  .cardInspect {
+    min-height: 44px;
+    padding: 5px 7px;
+  }
+
+  .inspectTitle {
+    font-size: 11px;
+  }
+
+  .inspectText {
     font-size: 10px;
   }
 
@@ -946,19 +1035,19 @@ button:disabled {
   }
 
   .boardRow {
-    min-height: 154px;
+    min-height: 120px;
   }
 
   .battleCard,
   .emptySlot {
-    width: 100px;
-    min-height: 150px;
+    width: 84px;
+    min-height: 118px;
   }
 
   #hand .battleCard,
   .hand .battleCard {
-    width: 126px;
-    min-height: 194px;
+    width: 92px;
+    min-height: 128px;
   }
 
   .cardName {
@@ -993,7 +1082,7 @@ button:disabled {
   }
 
   .leaderRow {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 6px;
   }
 
@@ -1021,13 +1110,13 @@ button:disabled {
   }
 
   .boardRow {
-    min-height: 142px;
+    min-height: 108px;
   }
 
   .battleCard,
   .emptySlot {
-    width: 94px;
-    min-height: 138px;
+    width: 78px;
+    min-height: 108px;
     padding: 5px;
   }
 
@@ -1052,9 +1141,9 @@ button:disabled {
   }
 
   .artSigil {
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
   }
 
   .stat {
@@ -1064,19 +1153,39 @@ button:disabled {
   }
 
   .hand {
-    min-height: 166px;
+    min-height: 104px;
   }
 
   #hand .battleCard,
   .hand .battleCard {
-    width: 112px;
-    min-height: 172px;
+    width: 86px;
+    min-height: 116px;
   }
 
   #hand .battleCard .cardText,
   .hand .battleCard .cardText {
-    max-height: 54px;
+    display: none;
+  }
+
+  .cardInspect {
+    min-height: 38px;
+    padding: 4px 6px;
+  }
+
+  .inspectTitle {
+    font-size: 10px;
+    margin-bottom: 1px;
+  }
+
+  .inspectText {
     font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .keymark {
+    width: 13px;
+    height: 13px;
+    font-size: 8px;
   }
 
   .actions button {

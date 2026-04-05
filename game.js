@@ -14,6 +14,12 @@ const KEYWORD_LABELS = {
   storm: "疾走"
 };
 
+const KEYWORD_GLYPHS = {
+  ward: "⬢",
+  rush: "➤",
+  storm: "⚡"
+};
+
 const MISSION_POOL = [
   {
     id: "play_2_cards",
@@ -51,7 +57,9 @@ const MISSION_POOL = [
 
 const state = {
   builderCounts: initializeBuilderCounts(),
-  phase: "build"
+  phase: "build",
+  inspectCardId: null,
+  secondSide: "enemy"
 };
 
 function cloneData(value) {
@@ -144,7 +152,10 @@ function updateMissionProgress(side, runtime = {}) {
   if (mission.progress >= mission.target) {
     mission.completed = true;
     log(`${side === "player" ? "あなた" : "相手"}のミッション達成: ${mission.text}`);
-    resolveEffects(mission.rewardEffects, side, runtime);
+    resolveEffects(missionRewardEffectsForSide(side, mission), side, runtime);
+    if (isSecondPlayer(side)) {
+      log(`${sideLabel(side)}に後攻補正ボーナスが適用された。`);
+    }
   }
 }
 
@@ -186,6 +197,31 @@ function otherSide(side) {
 function sideLabel(side) {
   if (state.battleMode === "pvp") return side === "player" ? "プレイヤー1" : "プレイヤー2";
   return side === "player" ? "あなた" : "相手";
+}
+
+function isSecondPlayer(side) {
+  return side === state.secondSide;
+}
+
+function missionRewardEffectsForSide(side, mission) {
+  const effects = cloneData(mission?.rewardEffects || []);
+  if (!isSecondPlayer(side)) return effects;
+
+  let boosted = false;
+  for (const effect of effects) {
+    if (effect.type === "draw" || effect.type === "gain_pp" || effect.type === "heal_leader") {
+      effect.amount = (effect.amount || 0) + 1;
+      boosted = true;
+    }
+  }
+
+  if (!boosted) effects.push({ type: "draw", amount: 1 });
+  return effects;
+}
+
+function missionRewardLabelForSide(side, mission) {
+  if (!mission) return "";
+  return isSecondPlayer(side) ? `${mission.rewardText} + 後攻補正` : mission.rewardText;
 }
 
 function activeSide() {
@@ -610,8 +646,26 @@ function playCardFromHand(side, handIndex, runtime = {}) {
   if (!card) return false;
 
   if (card.type === "evolution") {
-    if (side === "player") log(`進化カード ${card.name} は直接プレイできません。`);
-    return false;
+    const transmuteCost = 1;
+    const usesSharedPp = side === "player" || state.battleMode === "pvp";
+    if (usesSharedPp) {
+      if (transmuteCost > state.pp) {
+        if (side === "player") log(`PP不足: ${card.name} の転用は${transmuteCost}必要`);
+        return false;
+      }
+      state.pp -= transmuteCost;
+    } else {
+      if (!runtime.enemyPp || transmuteCost > runtime.enemyPp.value) return false;
+      runtime.enemyPp.value -= transmuteCost;
+    }
+
+    data.hand.splice(handIndex, 1);
+    drawCard(side, 1);
+    registerMissionEvent(side, "card_play", 1, runtime);
+    registerTagsPlayed(side, card.tags || []);
+    log(`${sideLabel(side)}は ${card.name} を転用して1ドロー。`);
+    if (side === "player") burstFx("play");
+    return true;
   }
 
   const usesSharedPp = side === "player" || state.battleMode === "pvp";
@@ -711,6 +765,8 @@ function initializeBattleFromDeck(deckCounts) {
   state.playerMissionStats = initMissionStats();
   state.enemyMissionStats = initMissionStats();
   state.selected = null;
+  state.inspectCardId = null;
+  state.secondSide = "enemy";
   state.activeSide = "player";
   state.gameOver = false;
   state.log = [];
@@ -1048,6 +1104,7 @@ function cardDescription(card) {
     const kw = formatKeywords(card.grantsKeywords || []);
     if (kw) lines.push(`付与: ${kw}`);
     if (card.onEvolve?.length) lines.push(`進化時: ${card.onEvolve.map(effectToText).join(" / ")}`);
+    lines.push("手札転用: 1PPで1ドロー");
   }
 
   if (card.combo) {
@@ -1086,6 +1143,19 @@ function keywordTagsHtml(keywords = []) {
   return `<div class="tags">${keywords.map(key => `<span class="tag">${KEYWORD_LABELS[key] || key}</span>`).join("")}</div>`;
 }
 
+function keywordMarksHtml(keywords = []) {
+  if (!keywords.length) return "";
+  return `<div class="keymarks">${keywords.map((key) => `
+    <span class="keymark key-${key}" title="${KEYWORD_LABELS[key] || key}">
+      ${KEYWORD_GLYPHS[key] || "•"}
+    </span>
+  `).join("")}</div>`;
+}
+
+function keywordClassList(keywords = []) {
+  return keywords.map((k) => `kw-${k}`).join(" ");
+}
+
 function unitCardHtml(unit, text, cost = "") {
   return `
     <div class="cardTop">
@@ -1097,13 +1167,28 @@ function unitCardHtml(unit, text, cost = "") {
       <div class="cardText">${text || ""}</div>
     </div>
     <div class="cardBottom">
-      ${keywordTagsHtml(unit.keywords || [])}
+      ${keywordMarksHtml(unit.keywords || [])}
       <div style="display:flex; gap:4px;">
         <span class="stat statAtk">${unit.atk}</span>
         <span class="stat statHp">${unit.hp}</span>
       </div>
     </div>
   `;
+}
+
+function updateInspectPanel(card) {
+  const titleEl = document.getElementById("inspectTitle");
+  const textEl = document.getElementById("inspectText");
+  if (!titleEl || !textEl) return;
+
+  if (!card) {
+    titleEl.textContent = "カード詳細";
+    textEl.textContent = "カードの i ボタンで効果を確認できます。";
+    return;
+  }
+
+  titleEl.textContent = `${card.name} (コスト${card.cost ?? "-"})`;
+  textEl.textContent = cardDescription(card) || "効果テキストなし";
 }
 
 function showBuilderScreen() {
@@ -1194,7 +1279,7 @@ function renderBattle() {
   const missionEl = document.getElementById("missionText");
   if (missionEl) {
     const m = missionFor(side);
-    missionEl.textContent = m ? `${m.text} (${m.progress}/${m.target}) / ${m.rewardText}` : "未設定";
+    missionEl.textContent = m ? `${m.text} (${m.progress}/${m.target}) / ${missionRewardLabelForSide(side, m)}` : "未設定";
   }
   document.getElementById("enemyLeaderAvatar").innerHTML = `
     <div class="leaderInner">
@@ -1225,7 +1310,7 @@ function renderBattle() {
   } else {
     foe.board.forEach((unit, i) => {
       const div = document.createElement("div");
-      div.className = "card battleCard";
+      div.className = `card battleCard ${keywordClassList(unit.keywords || [])}`.trim();
       div.innerHTML = unitCardHtml(unit, `${unit.evolved ? "進化済" : "未進化"} / ${unit.canAttack ? "攻撃可" : "攻撃済"}`);
       div.addEventListener("click", () => attackEnemyUnit(i));
       enemyBoardEl.appendChild(div);
@@ -1242,7 +1327,8 @@ function renderBattle() {
       const selected = state.selected === i ? " selected" : "";
       const used = unit.canAttack ? "" : " used";
       const div = document.createElement("div");
-      div.className = `card battleCard${selected}${used}`;
+      const kwClass = keywordClassList(unit.keywords || []);
+      div.className = `card battleCard ${kwClass}${selected}${used}`.trim();
 
       const evoIdx = findEvoHandIndexForUnit(me.hand, unit);
       const evoCard = evoIdx >= 0 ? me.hand[evoIdx] : null;
@@ -1271,11 +1357,14 @@ function renderBattle() {
   handEl.innerHTML = "";
   if (!me.hand.length) {
     handEl.innerHTML = `<div class="small">手札がありません。</div>`;
+    updateInspectPanel(null);
   } else {
+    let inspectMatched = false;
     me.hand.forEach((card, i) => {
       const div = document.createElement("div");
       const typeClass = card.type === "spell" ? " spellCard" : card.type === "evolution" ? " evolutionCard" : "";
-      div.className = `card battleCard handCardCompact${typeClass}`;
+      const kwClass = keywordClassList(card.keywords || card.grantsKeywords || []);
+      div.className = `card battleCard handCardCompact ${kwClass}${typeClass}`.trim();
       div.setAttribute("data-cost", String(card.cost));
 
       if (card.type === "unit") {
@@ -1290,7 +1379,7 @@ function renderBattle() {
             ${cardArtHtml(card)}
           </div>
           <div class="cardBottom">
-            ${keywordTagsHtml(card.grantsKeywords || [])}
+            ${keywordMarksHtml(card.grantsKeywords || [])}
             <div style="display:flex; gap:4px;">
               <span class="stat statAtk">${card.atk}</span>
               <span class="stat statHp">${card.hp}</span>
@@ -1307,15 +1396,36 @@ function renderBattle() {
             ${cardArtHtml(card)}
           </div>
           <div class="cardBottom">
-            <span class="tag">SPELL</span>
+            <span class="keymark key-spell" title="スペル">✦</span>
           </div>
         `;
       }
       div.title = `${card.name} (コスト${card.cost})\n${cardDescription(card)}`;
       div.addEventListener("click", () => playCard(i));
 
+      const infoBtn = document.createElement("button");
+      infoBtn.className = "miniInfoBtn";
+      infoBtn.type = "button";
+      infoBtn.textContent = "i";
+      infoBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        state.inspectCardId = card.id;
+        updateInspectPanel(card);
+      });
+      div.appendChild(infoBtn);
+
       handEl.appendChild(div);
+
+      if (!inspectMatched && state.inspectCardId === card.id) {
+        inspectMatched = true;
+        updateInspectPanel(card);
+      }
     });
+
+    if (!inspectMatched) {
+      state.inspectCardId = me.hand[0].id;
+      updateInspectPanel(me.hand[0]);
+    }
   }
 
   const leaderBtn = document.getElementById("attackLeaderBtn");
