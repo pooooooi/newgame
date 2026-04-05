@@ -1,0 +1,32 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Dog Leader Portrait">
+  <defs>
+    <radialGradient id="bgDog" cx="35%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#ffcfcd"/>
+      <stop offset="55%" stop-color="#c55a66"/>
+      <stop offset="100%" stop-color="#6f2734"/>
+    </radialGradient>
+    <linearGradient id="furDog" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#efd8bf"/>
+      <stop offset="100%" stop-color="#c39b74"/>
+    </linearGradient>
+    <linearGradient id="earDog" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8f4b3e"/>
+      <stop offset="100%" stop-color="#5e2f27"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="126" fill="url(#bgDog)"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#ffe3e1" stroke-opacity=".35" stroke-width="2"/>
+  <ellipse cx="70" cy="124" rx="29" ry="48" fill="url(#earDog)"/>
+  <ellipse cx="186" cy="124" rx="29" ry="48" fill="url(#earDog)"/>
+  <ellipse cx="128" cy="140" rx="72" ry="66" fill="url(#furDog)"/>
+  <ellipse cx="128" cy="167" rx="34" ry="28" fill="#fff0dd"/>
+  <ellipse cx="101" cy="136" rx="10" ry="11" fill="#1f2433"/>
+  <ellipse cx="155" cy="136" rx="10" ry="11" fill="#1f2433"/>
+  <circle cx="103" cy="133" r="2.8" fill="#fff"/>
+  <circle cx="157" cy="133" r="2.8" fill="#fff"/>
+  <ellipse cx="128" cy="154" rx="15" ry="11" fill="#2a2020"/>
+  <path d="M128 165 C118 175 106 175 100 169" fill="none" stroke="#8a4d43" stroke-width="4" stroke-linecap="round"/>
+  <path d="M128 165 C138 175 150 175 156 169" fill="none" stroke="#8a4d43" stroke-width="4" stroke-linecap="round"/>
+  <path d="M72 98 C84 91 94 95 101 106" fill="none" stroke="#c8a07b" stroke-width="6" stroke-linecap="round"/>
+  <path d="M184 98 C172 91 162 95 155 106" fill="none" stroke="#c8a07b" stroke-width="6" stroke-linecap="round"/>
+</svg>

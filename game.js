@@ -59,7 +59,9 @@ const state = {
   builderCounts: initializeBuilderCounts(),
   phase: "build",
   inspectCardId: null,
-  secondSide: "enemy"
+  secondSide: "enemy",
+  handDrag: null,
+  suppressHandClickUntil: 0
 };
 
 function cloneData(value) {
@@ -798,6 +800,101 @@ function playCard(handIndex) {
   renderBattle();
 }
 
+function nowMs() {
+  return (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+}
+
+function clearHandDragVisuals() {
+  const zone = document.getElementById("playerBoard");
+  if (zone) zone.classList.remove("dropReady");
+}
+
+function cleanupHandDrag() {
+  const drag = state.handDrag;
+  if (!drag) return;
+  if (drag.ghost && drag.ghost.parentNode) drag.ghost.parentNode.removeChild(drag.ghost);
+  if (drag.sourceEl) drag.sourceEl.classList.remove("dragSource");
+  clearHandDragVisuals();
+  state.handDrag = null;
+}
+
+function isPointInsideElement(el, x, y) {
+  if (!el) return false;
+  const rect = el.getBoundingClientRect();
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+}
+
+function updateHandGhostPosition(ghost, x, y) {
+  ghost.style.left = `${x}px`;
+  ghost.style.top = `${y}px`;
+}
+
+function beginHandCardDrag(handIndex, sourceEl, startEv) {
+  if (state.phase !== "battle" || state.gameOver) return;
+  if (startEv.button !== undefined && startEv.button !== 0) return;
+
+  const rect = sourceEl.getBoundingClientRect();
+  state.handDrag = {
+    handIndex,
+    sourceEl,
+    startX: startEv.clientX,
+    startY: startEv.clientY,
+    pointerId: startEv.pointerId,
+    started: false,
+    ghost: null,
+    width: rect.width,
+    height: rect.height
+  };
+}
+
+function handleHandPointerMove(ev) {
+  const drag = state.handDrag;
+  if (!drag || ev.pointerId !== drag.pointerId) return;
+
+  const dx = ev.clientX - drag.startX;
+  const dy = ev.clientY - drag.startY;
+  const dist = Math.hypot(dx, dy);
+
+  if (!drag.started && dist < 12) return;
+
+  if (!drag.started) {
+    drag.started = true;
+    drag.sourceEl.classList.add("dragSource");
+    const ghost = drag.sourceEl.cloneNode(true);
+    ghost.classList.add("dragGhost");
+    ghost.style.width = `${drag.width}px`;
+    ghost.style.height = `${drag.height}px`;
+    document.body.appendChild(ghost);
+    drag.ghost = ghost;
+  }
+
+  ev.preventDefault();
+  updateHandGhostPosition(drag.ghost, ev.clientX, ev.clientY);
+
+  const dropZone = document.getElementById("playerBoard");
+  if (!dropZone) return;
+  dropZone.classList.toggle("dropReady", isPointInsideElement(dropZone, ev.clientX, ev.clientY));
+}
+
+function finishHandPointer(ev, canceled = false) {
+  const drag = state.handDrag;
+  if (!drag || ev.pointerId !== drag.pointerId) return;
+
+  const didDrag = drag.started;
+  const dropZone = document.getElementById("playerBoard");
+  const droppedOnBoard = !canceled && didDrag && isPointInsideElement(dropZone, ev.clientX, ev.clientY);
+  const handIndex = drag.handIndex;
+
+  cleanupHandDrag();
+
+  if (didDrag) {
+    state.suppressHandClickUntil = nowMs() + 250;
+  }
+
+  if (!droppedOnBoard) return;
+  playCard(handIndex);
+}
+
 function evolveUnit(index) {
   if (state.phase !== "battle" || state.gameOver) return;
 
@@ -1199,6 +1296,13 @@ function showBattleScreen() {
   window.location.href = "battle.html";
 }
 
+function setLogModalOpen(open) {
+  const modal = document.getElementById("logModal");
+  if (!modal) return;
+  modal.classList.toggle("hidden", !open);
+  document.body.classList.toggle("modalOpen", open);
+}
+
 function unitLabel(unit) {
   const kw = formatKeywords(unit.keywords);
   return `${unit.name} [${unit.atk}/${unit.hp}]${unit.evolved ? " (進化済)" : ""}${kw ? ` <${kw}>` : ""}`;
@@ -1277,36 +1381,50 @@ function renderBattle() {
   const ppCapForView = Math.max(state.maxPp, state.pp);
   document.getElementById("pp").textContent = `${state.pp}/${ppCapForView}`;
   const missionEl = document.getElementById("missionText");
+  const missionChipEl = document.getElementById("missionChip");
   if (missionEl) {
     const m = missionFor(side);
-    missionEl.textContent = m ? `${m.text} (${m.progress}/${m.target}) / ${missionRewardLabelForSide(side, m)}` : "未設定";
+    missionEl.textContent = m ? `${m.progress}/${m.target}` : "-";
+    if (missionChipEl) {
+      missionChipEl.title = m
+        ? `${m.text} (${m.progress}/${m.target}) / ${missionRewardLabelForSide(side, m)}`
+        : "ミッション未設定";
+    }
   }
+  const enemyHp = Math.max(0, me.getEnemyLeaderHp());
+  const playerHp = Math.max(0, me.getLeaderHp());
+
   document.getElementById("enemyLeaderAvatar").innerHTML = `
-    <div class="leaderInner">
-      <div class="leaderFace">🜏</div>
-      <div class="leaderInfo">
-        <div class="leaderName">${sideLabel(opp)}</div>
-        <div>HP ${Math.max(0, me.getEnemyLeaderHp())}</div>
+    <div class="leaderInner mascotLeader">
+      <div class="leaderMascot enemyMascot" role="img" aria-label="犬リーダー"></div>
+      <div class="leaderVitals">
+        <span class="hpBadge">${enemyHp}</span>
       </div>
     </div>
   `;
   document.getElementById("playerLeaderAvatar").innerHTML = `
-    <div class="leaderInner">
-      <div class="leaderFace">✦</div>
-      <div class="leaderInfo">
-        <div class="leaderName">${sideLabel(side)}</div>
-        <div>HP ${Math.max(0, me.getLeaderHp())} / PP ${state.pp}</div>
+    <div class="leaderInner mascotLeader">
+      <div class="leaderMascot playerMascot" role="img" aria-label="猫リーダー"></div>
+      <div class="leaderVitals">
+        <span class="hpBadge">${playerHp}</span>
       </div>
     </div>
   `;
   const enemyLeaderEl = document.getElementById("enemyLeaderAvatar");
+  enemyLeaderEl.title = `${sideLabel(opp)} HP ${enemyHp}`;
+  enemyLeaderEl.setAttribute("data-hp", String(enemyHp));
+  const playerLeaderEl = document.getElementById("playerLeaderAvatar");
+  if (playerLeaderEl) {
+    playerLeaderEl.title = `${sideLabel(side)} HP ${playerHp}`;
+    playerLeaderEl.setAttribute("data-hp", String(playerHp));
+  }
   enemyLeaderEl.classList.toggle("leaderTargetable", canSelectedAttackLeaderNow());
 
   const enemyBoardEl = document.getElementById("enemyBoard");
   enemyBoardEl.className = "boardRow";
   enemyBoardEl.innerHTML = "";
   if (!foe.board.length) {
-    enemyBoardEl.innerHTML = `<div class="emptySlot">相手フォロワーなし</div>`;
+    enemyBoardEl.innerHTML = `<div class="emptySlot" title="相手フォロワーなし">◇</div>`;
   } else {
     foe.board.forEach((unit, i) => {
       const div = document.createElement("div");
@@ -1321,7 +1439,7 @@ function renderBattle() {
   playerBoardEl.className = "boardRow";
   playerBoardEl.innerHTML = "";
   if (!me.board.length) {
-    playerBoardEl.innerHTML = `<div class="emptySlot">味方フォロワーなし</div>`;
+    playerBoardEl.innerHTML = `<div class="emptySlot" title="味方フォロワーなし">◇</div>`;
   } else {
     me.board.forEach((unit, i) => {
       const selected = state.selected === i ? " selected" : "";
@@ -1401,7 +1519,12 @@ function renderBattle() {
         `;
       }
       div.title = `${card.name} (コスト${card.cost})\n${cardDescription(card)}`;
-      div.addEventListener("click", () => playCard(i));
+      div.addEventListener("click", () => {
+        if (state.suppressHandClickUntil > nowMs()) return;
+        state.inspectCardId = card.id;
+        updateInspectPanel(card);
+      });
+      div.addEventListener("pointerdown", (ev) => beginHandCardDrag(i, div, ev));
 
       const infoBtn = document.createElement("button");
       infoBtn.className = "miniInfoBtn";
@@ -1434,13 +1557,18 @@ function renderBattle() {
   }
   document.getElementById("endTurnBtn").disabled = state.gameOver;
 
-  const logEl = document.getElementById("log");
-  logEl.innerHTML = state.log.map(line => {
+  const logHtml = state.log.map(line => {
     if (line.includes("勝ち")) return `<div class="win">${line}</div>`;
     if (line.includes("負け")) return `<div class="lose">${line}</div>`;
     return `<div>${line}</div>`;
   }).join("");
-  logEl.scrollTop = logEl.scrollHeight;
+
+  const logTargets = [document.getElementById("log"), document.getElementById("logModalBody")];
+  for (const target of logTargets) {
+    if (!target) continue;
+    target.innerHTML = logHtml;
+    target.scrollTop = target.scrollHeight;
+  }
 }
 
 function hydrateBuilderCountsFromStorage() {
@@ -1503,6 +1631,21 @@ function setupBattlePage() {
     document.getElementById("enemyLeaderAvatar").addEventListener("click", attackLeader);
     document.getElementById("endTurnBtn").addEventListener("click", endTurn);
     document.getElementById("resetBtn").addEventListener("click", showBuilderScreen);
+    const logOpenBtn = document.getElementById("logOpenBtn");
+    const logCloseBtn = document.getElementById("logCloseBtn");
+    const logBackdrop = document.getElementById("logModalBackdrop");
+    if (logOpenBtn) logOpenBtn.addEventListener("click", () => setLogModalOpen(true));
+    if (logCloseBtn) logCloseBtn.addEventListener("click", () => setLogModalOpen(false));
+    if (logBackdrop) logBackdrop.addEventListener("click", () => setLogModalOpen(false));
+    window.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") setLogModalOpen(false);
+    });
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 760) setLogModalOpen(false);
+    });
+    window.addEventListener("pointermove", handleHandPointerMove, { passive: false });
+    window.addEventListener("pointerup", (ev) => finishHandPointer(ev, false));
+    window.addEventListener("pointercancel", (ev) => finishHandPointer(ev, true));
 
     renderBattle();
     hidePassOverlay();

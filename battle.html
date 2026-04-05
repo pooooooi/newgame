@@ -21,16 +21,31 @@
       <div class="rotateText">バトルは横持ちだと見やすく、操作しやすくなります。</div>
     </div>
   </div>
-  <div id="battleScreen" class="app battleApp">
+  <div id="battleScreen" class="app battleApp compact fitScreen">
     <section class="panel battleMainPanel">
       <div class="battleArena">
         <div class="status battleHud">
-          <div class="chip">ターン: <strong id="turn">1</strong></div>
-          <div class="chip">あなたHP: <strong id="playerHp">20</strong></div>
-          <div class="chip">相手HP: <strong id="enemyHp">20</strong></div>
-          <div class="chip">PP: <strong id="pp">1/1</strong></div>
+          <div class="chip chipTurn" title="ターン">
+            <span class="chipIcon" aria-hidden="true">⌛</span>
+            <strong id="turn">1</strong>
+          </div>
+          <div class="chip chipPlayerHp" title="あなたHP">
+            <span class="chipIcon" aria-hidden="true">🐱</span>
+            <strong id="playerHp">20</strong>
+          </div>
+          <div class="chip chipEnemyHp" title="相手HP">
+            <span class="chipIcon" aria-hidden="true">🐶</span>
+            <strong id="enemyHp">20</strong>
+          </div>
+          <div class="chip chipPp" title="PP">
+            <span class="chipIcon" aria-hidden="true">◆</span>
+            <strong id="pp">1/1</strong>
+          </div>
         </div>
-        <div class="chip missionChip">ミッション: <strong id="missionText">未設定</strong></div>
+        <div id="missionChip" class="chip missionChip" title="ミッション未設定">
+          <span class="chipIcon" aria-hidden="true">✦</span>
+          <strong id="missionText">-</strong>
+        </div>
 
         <div class="leaderRow leaderTop">
           <div id="enemyLeaderAvatar" class="leaderCard enemyLeader targetLeader"></div>
@@ -65,6 +80,7 @@
           <button id="endTurnBtn">ターン終了</button>
           <button id="resetBtn">構築に戻る</button>
         </div>
+        <button id="logOpenBtn" class="mobileLogBtn" type="button">ログ</button>
       </div>
     </section>
 
@@ -72,6 +88,17 @@
       <h1>Battle Log</h1>
       <div id="log" class="log"></div>
     </section>
+  </div>
+
+  <div id="logModal" class="logModal hidden">
+    <div id="logModalBackdrop" class="logModalBackdrop"></div>
+    <div class="logModalCard">
+      <div class="logModalHeader">
+        <h2>Battle Log</h2>
+        <button id="logCloseBtn" type="button">閉じる</button>
+      </div>
+      <div id="logModalBody" class="log"></div>
+    </div>
   </div>
 
   <script src="cards.js"></script>

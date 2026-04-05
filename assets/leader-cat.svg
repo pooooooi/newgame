@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Cat Leader Portrait">
+  <defs>
+    <radialGradient id="bgCat" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#8dd2ff"/>
+      <stop offset="55%" stop-color="#3a7ac8"/>
+      <stop offset="100%" stop-color="#183f73"/>
+    </radialGradient>
+    <linearGradient id="furCat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffc46f"/>
+      <stop offset="100%" stop-color="#d47d2c"/>
+    </linearGradient>
+    <linearGradient id="earInnerCat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd9cf"/>
+      <stop offset="100%" stop-color="#ffad99"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="126" fill="url(#bgCat)"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="#d4e9ff" stroke-opacity=".4" stroke-width="2"/>
+  <path d="M65 94 L103 61 L111 112 Z" fill="url(#furCat)"/>
+  <path d="M191 94 L153 61 L145 112 Z" fill="url(#furCat)"/>
+  <path d="M81 94 L102 76 L106 103 Z" fill="url(#earInnerCat)" opacity=".9"/>
+  <path d="M175 94 L154 76 L150 103 Z" fill="url(#earInnerCat)" opacity=".9"/>
+  <ellipse cx="128" cy="141" rx="74" ry="69" fill="url(#furCat)"/>
+  <ellipse cx="128" cy="163" rx="34" ry="26" fill="#ffe3c4"/>
+  <ellipse cx="100" cy="137" rx="10" ry="12" fill="#1b2a3f"/>
+  <ellipse cx="156" cy="137" rx="10" ry="12" fill="#1b2a3f"/>
+  <circle cx="102" cy="134" r="3" fill="#fff"/>
+  <circle cx="158" cy="134" r="3" fill="#fff"/>
+  <path d="M128 147 L120 160 L136 160 Z" fill="#ca6d58"/>
+  <path d="M128 161 C120 171 108 171 102 165" fill="none" stroke="#9f4f3d" stroke-width="4" stroke-linecap="round"/>
+  <path d="M128 161 C136 171 148 171 154 165" fill="none" stroke="#9f4f3d" stroke-width="4" stroke-linecap="round"/>
+  <path d="M74 157 H108" stroke="#f8efe4" stroke-width="3" stroke-linecap="round"/>
+  <path d="M74 168 H106" stroke="#f8efe4" stroke-width="3" stroke-linecap="round"/>
+  <path d="M148 157 H182" stroke="#f8efe4" stroke-width="3" stroke-linecap="round"/>
+  <path d="M150 168 H182" stroke="#f8efe4" stroke-width="3" stroke-linecap="round"/>
+</svg>
