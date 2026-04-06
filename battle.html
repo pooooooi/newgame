@@ -46,6 +46,10 @@
           <span class="chipIcon" aria-hidden="true">✦</span>
           <strong id="missionText">-</strong>
         </div>
+        <div id="resultBanner" class="resultBanner hidden" aria-live="polite">
+          <strong id="resultMain">決着！</strong>
+          <span id="resultSub">勝敗がここに表示されます</span>
+        </div>
 
         <div class="leaderRow leaderTop">
           <div id="enemyLeaderAvatar" class="leaderCard enemyLeader targetLeader"></div>
@@ -53,7 +57,7 @@
 
         <div class="board">
           <div class="lane enemyLane">
-            <h3>相手の場</h3>
+            <h3>相手の場 <span id="enemyHandCount" class="handCountBadge">手札 0</span></h3>
             <div id="enemyBoard"></div>
           </div>
           <div class="lane playerLane">

@@ -20,6 +20,7 @@ const AI_DIFFICULTIES = [
       spellSkipChance: 0.58,
       evolveChance: 0.22,
       followerAttackChance: 0.8,
+      faceBias: 0.05,
       smartCardChoice: false,
       smartAttackChoice: false,
       smartEvolve: false,
@@ -40,6 +41,7 @@ const AI_DIFFICULTIES = [
       spellSkipChance: 0.34,
       evolveChance: 0.54,
       followerAttackChance: 0.58,
+      faceBias: 0.2,
       smartCardChoice: true,
       smartAttackChoice: false,
       smartEvolve: false,
@@ -60,6 +62,7 @@ const AI_DIFFICULTIES = [
       spellSkipChance: 0.14,
       evolveChance: 0.72,
       followerAttackChance: 0.47,
+      faceBias: 0.45,
       smartCardChoice: true,
       smartAttackChoice: true,
       smartEvolve: true,
@@ -76,18 +79,19 @@ const AI_DIFFICULTIES = [
     animal: "ライオン",
     displayLabel: "激つよ / ライオン",
     ai: {
-      playLoopLimit: 24,
-      spellSkipChance: 0.04,
-      evolveChance: 0.92,
-      followerAttackChance: 0.34,
+      playLoopLimit: 32,
+      spellSkipChance: 0,
+      evolveChance: 0.98,
+      followerAttackChance: 0.1,
+      faceBias: 0.88,
       smartCardChoice: true,
       smartAttackChoice: true,
       smartEvolve: true,
       lethalAware: true,
       playTopPool: 1,
       attackTopPool: 1,
-      playScoreJitter: 0.45,
-      tradeAggroThreshold: 4.8
+      playScoreJitter: 0.1,
+      tradeAggroThreshold: 6.6
     }
   }
 ];
@@ -310,6 +314,28 @@ function sideLabel(side) {
   return side === "player" ? "あなた" : "相手";
 }
 
+function sideOrderLabel(side) {
+  return side === state.secondSide ? "後攻" : "先攻";
+}
+
+function sideOrderClass(side) {
+  return side === state.secondSide ? "orderSecond" : "orderFirst";
+}
+
+function battleResultInfo() {
+  if (!state.gameOver) return null;
+
+  if (state.battleMode === "pvp") {
+    if (state.enemyHp <= 0) return { main: "決着！", sub: "プレイヤー1の勝ち", tone: "resultPvp" };
+    if (state.playerHp <= 0) return { main: "決着！", sub: "プレイヤー2の勝ち", tone: "resultPvp" };
+    return { main: "決着！", sub: "引き分け", tone: "resultPvp" };
+  }
+
+  if (state.enemyHp <= 0) return { main: "勝利！", sub: "あなたの勝ち", tone: "resultWin" };
+  if (state.playerHp <= 0) return { main: "敗北…", sub: "あなたの負け", tone: "resultLose" };
+  return { main: "決着！", sub: "勝敗確定", tone: "resultPvp" };
+}
+
 function isSecondPlayer(side) {
   return side === state.secondSide;
 }
@@ -505,21 +531,33 @@ function buildRandomDeck(size) {
   return shuffle(buildDeckFromCounts(buildRandomCounts(size)));
 }
 
-function injectLionSignatureCard(deck) {
-  const signature = cardMap.unit_eternal_jouma;
-  if (!signature) return deck;
-
+function replaceDeckCardsWith(deck, injectedCards) {
   const next = [...deck];
-  if (next.some(card => card.id === signature.id)) return shuffle(next);
-
-  if (!next.length) {
-    next.push(cloneData(signature));
-    return shuffle(next);
+  for (const card of injectedCards || []) {
+    if (!card) continue;
+    if (!next.length) {
+      next.push(cloneData(card));
+      continue;
+    }
+    const replaceIndex = Math.floor(Math.random() * next.length);
+    next[replaceIndex] = cloneData(card);
   }
-
-  const replaceIndex = Math.floor(Math.random() * next.length);
-  next[replaceIndex] = cloneData(signature);
   return shuffle(next);
+}
+
+function injectLionSignatureCards(deck) {
+  const lionCardIds = [
+    "unit_eternal_jouma",
+    "unit_lion_champion",
+    "spell_lion_command",
+    "spell_lion_command",
+    "spell_lion_wrath",
+    "spell_lion_wrath"
+  ];
+  const signatures = lionCardIds
+    .map(id => cardMap[id])
+    .filter(Boolean);
+  return replaceDeckCardsWith(deck, signatures);
 }
 
 function buildEnemyDeckForAi(size, playerDeckCounts, difficultyId = state.aiDifficulty) {
@@ -555,7 +593,7 @@ function buildEnemyDeckForAi(size, playerDeckCounts, difficultyId = state.aiDiff
     const baseDeck = isDeckValid(playerDeckCounts)
       ? shuffle(buildDeckFromCounts(playerDeckCounts))
       : shuffle(buildDeckFromCounts(buildRandomCountsFromPool(size, collectibleCards)));
-    return injectLionSignatureCard(baseDeck);
+    return injectLionSignatureCards(baseDeck);
   }
 
   const fallback = buildRandomCountsFromPool(size, collectibleCards);
@@ -774,6 +812,16 @@ function grantSecondPlayerBonus(side) {
   addCardToHand(side, "token_jouma_tears");
 }
 
+function grantLionOpeningBonus() {
+  if (state.battleMode !== "ai") return false;
+  if (normalizeAiDifficulty(state.aiDifficulty) !== "lion") return false;
+
+  drawCard("enemy", 1);
+  addCardToHand("enemy", "token_coin");
+  addCardToHand("enemy", "spell_lion_command");
+  return true;
+}
+
 function resolveEffects(effects, side, runtime = {}) {
   const data = getSideData(side);
 
@@ -815,7 +863,21 @@ function resolveEffects(effects, side, runtime = {}) {
 
     if (effect.type === "damage_enemy_unit_or_leader") {
       if (data.enemyBoard.length > 0) {
-        data.enemyBoard[0].hp -= (effect.amount || 0);
+        let targetIdx = 0;
+        if (side === "enemy" && state.battleMode === "ai") {
+          const damage = effect.amount || 0;
+          let bestScore = -Infinity;
+          for (let i = 0; i < data.enemyBoard.length; i++) {
+            const target = data.enemyBoard[i];
+            const canKill = damage >= target.hp;
+            const score = estimateUnitThreatForAi(target) + (canKill ? 3.2 : 0);
+            if (score > bestScore) {
+              bestScore = score;
+              targetIdx = i;
+            }
+          }
+        }
+        data.enemyBoard[targetIdx].hp -= (effect.amount || 0);
       } else {
         const amount = (effect.leaderFallback ?? effect.amount ?? 0);
         data.setEnemyLeaderHp(data.getEnemyLeaderHp() - amount);
@@ -1059,10 +1121,14 @@ function initializeBattleFromDeck(deckCounts) {
   drawCard("player", 6);
   drawCard("enemy", 6);
   grantSecondPlayerBonus(state.secondSide);
+  const lionOpeningBonusApplied = grantLionOpeningBonus();
 
   log(`ゲーム開始。${sideLabel(firstSide)}が先攻。`);
   if (state.battleMode === "ai") {
     log(`CPU難易度: ${aiDifficultyDef(state.aiDifficulty).displayLabel}`);
+    if (lionOpeningBonusApplied) {
+      log("ライオン補正: 追加ドロー1 / コイン1 / 王者の号令1");
+    }
   }
   log(`${sideLabel(state.secondSide)}は後攻ボーナス: 初手+1枚 / コイン1枚 / じょうまの涙1枚。`);
 
@@ -1344,6 +1410,60 @@ function estimateUnitThreatForAi(unit) {
   return score;
 }
 
+function estimateLeaderDamageFromEffects(effects = []) {
+  let total = 0;
+  for (const effect of effects) {
+    if (effect.type === "damage_enemy_leader") {
+      total += (effect.amount || 0);
+      continue;
+    }
+    if (effect.type === "damage_enemy_unit_or_leader" && state.playerBoard.length === 0) {
+      total += (effect.leaderFallback ?? effect.amount ?? 0);
+      continue;
+    }
+  }
+  return total;
+}
+
+function canUnitDealLeaderDamageOnSummon(card) {
+  if (!card || card.type !== "unit") return false;
+  if (state.enemyBoard.length >= MAX_BOARD) return false;
+  if (!(card.keywords || []).includes("storm")) return false;
+  if (getWardUnits(state.playerBoard).length > 0) return false;
+  return true;
+}
+
+function estimateEnemyCardLeaderDamageNow(card) {
+  if (!card) return 0;
+  let damage = 0;
+
+  if (card.type === "spell") {
+    damage += estimateLeaderDamageFromEffects(card.effects || []);
+  }
+
+  if (card.type === "unit") {
+    damage += estimateLeaderDamageFromEffects(card.onPlay || []);
+    if (canUnitDealLeaderDamageOnSummon(card)) damage += (card.atk || 0);
+  }
+
+  if (card.combo?.tag && (card.combo.threshold || 0) > 0) {
+    const played = state.enemyTagCounts[card.combo.tag] || 0;
+    const selfAdds = (card.tags || []).includes(card.combo.tag) ? 1 : 0;
+    if ((played + selfAdds) >= (card.combo.threshold || 0)) {
+      damage += estimateLeaderDamageFromEffects(card.combo.effects || []);
+    }
+  }
+
+  if (card.awakening) {
+    const hpThreshold = card.awakening.hpAtMost ?? 10;
+    if (state.enemyHp <= hpThreshold) {
+      damage += estimateLeaderDamageFromEffects(card.awakening.effects || []);
+    }
+  }
+
+  return damage;
+}
+
 function scoreEnemyEffect(effect) {
   const amount = effect.amount || 0;
   const playerBoardCount = state.playerBoard.length;
@@ -1351,12 +1471,17 @@ function scoreEnemyEffect(effect) {
 
   if (effect.type === "draw") return (amount || 1) * 1.45;
   if (effect.type === "heal_leader") return (state.enemyHp <= 12 ? 1.2 : 0.45) * amount;
-  if (effect.type === "damage_enemy_leader") return amount * 1.8;
+  if (effect.type === "damage_enemy_leader") {
+    if (state.playerHp <= amount) return 130;
+    return amount * 2.15;
+  }
   if (effect.type === "damage_random_enemy_unit") return playerBoardCount > 0 ? amount * 1.3 : -1.4;
   if (effect.type === "damage_all_enemy_units") return playerBoardCount > 0 ? amount * (0.95 + playerBoardCount * 0.48) : -1.8;
   if (effect.type === "damage_enemy_unit_or_leader") {
     if (playerBoardCount > 0) return amount * 1.35;
-    return (effect.leaderFallback ?? amount) * 1.6;
+    const faceDamage = (effect.leaderFallback ?? amount);
+    if (state.playerHp <= faceDamage) return 120;
+    return faceDamage * 1.95;
   }
   if (effect.type === "summon") {
     const count = effect.count || 1;
@@ -1430,10 +1555,28 @@ function pickEnemyHandIndexToPlay(enemyPp, aiConfig) {
     if (card.type === "spell" && rollChance(aiConfig.spellSkipChance)) continue;
 
     const jitter = (Math.random() - 0.5) * (aiConfig.playScoreJitter || 0);
-    candidates.push({ index: i, score: scoreEnemyPlayCard(card) + jitter });
+    candidates.push({
+      index: i,
+      score: scoreEnemyPlayCard(card) + jitter,
+      leaderDamage: estimateEnemyCardLeaderDamageNow(card)
+    });
   }
 
   if (!candidates.length) return -1;
+
+  if (aiConfig.lethalAware) {
+    const lethalNow = candidates
+      .filter(c => c.leaderDamage >= state.playerHp)
+      .sort((a, b) => (b.leaderDamage - a.leaderDamage) || (b.score - a.score));
+    if (lethalNow.length) return lethalNow[0].index;
+
+    const boardDamage = enemyPotentialLeaderDamage();
+    const setupLethal = candidates
+      .filter(c => c.leaderDamage > 0 && (c.leaderDamage + boardDamage) >= state.playerHp)
+      .sort((a, b) => (b.leaderDamage - a.leaderDamage) || (b.score - a.score));
+    if (setupLethal.length) return setupLethal[0].index;
+  }
+
   if (!aiConfig.smartCardChoice) {
     return candidates[Math.floor(Math.random() * candidates.length)].index;
   }
@@ -1494,6 +1637,10 @@ function shouldEnemyAttackFollower(attacker, aiConfig, pickedTarget) {
   if (!canAttackFollower(attacker)) return false;
   if (!canAttackLeader(attacker)) return true;
   if (aiConfig.lethalAware && enemyPotentialLeaderDamage() >= state.playerHp) return false;
+
+  if (aiConfig.faceBias && rollChance(aiConfig.faceBias)) {
+    return false;
+  }
 
   if (aiConfig.smartAttackChoice) {
     if (pickedTarget.canKill && pickedTarget.survives && pickedTarget.score >= aiConfig.tradeAggroThreshold) return true;
@@ -1803,6 +1950,12 @@ function showBattleScreen() {
   window.location.href = "battle.html";
 }
 
+function confirmBackToBuilder() {
+  const ok = window.confirm("デッキ画面に戻りますか？\nこの対戦の進行は失われます。");
+  if (!ok) return;
+  showBuilderScreen();
+}
+
 function setLogModalOpen(open) {
   const modal = document.getElementById("logModal");
   if (!modal) return;
@@ -1955,13 +2108,35 @@ function renderBattle() {
         : "ミッション未設定";
     }
   }
+  const resultBannerEl = document.getElementById("resultBanner");
+  const resultMainEl = document.getElementById("resultMain");
+  const resultSubEl = document.getElementById("resultSub");
+  if (resultBannerEl && resultMainEl && resultSubEl) {
+    const result = battleResultInfo();
+    resultBannerEl.classList.remove("resultWin", "resultLose", "resultPvp");
+    if (!result) {
+      resultBannerEl.classList.add("hidden");
+    } else {
+      resultBannerEl.classList.remove("hidden");
+      resultBannerEl.classList.add(result.tone);
+      resultMainEl.textContent = result.main;
+      resultSubEl.textContent = result.sub;
+    }
+  }
   const enemyHp = Math.max(0, me.getEnemyLeaderHp());
   const playerHp = Math.max(0, me.getLeaderHp());
+  const enemyOrder = sideOrderLabel(opp);
+  const playerOrder = sideOrderLabel(side);
+  const enemyOrderClass = sideOrderClass(opp);
+  const playerOrderClass = sideOrderClass(side);
+  const enemyHandCountEl = document.getElementById("enemyHandCount");
+  if (enemyHandCountEl) enemyHandCountEl.textContent = `手札 ${foe.hand.length}`;
 
   document.getElementById("enemyLeaderAvatar").innerHTML = `
     <div class="leaderInner mascotLeader">
       <div class="leaderMascot enemyMascot" role="img" aria-label="犬リーダー"></div>
       <div class="leaderVitals">
+        <span class="orderBadge ${enemyOrderClass}">${enemyOrder}</span>
         <span class="hpBadge">${enemyHp}</span>
       </div>
     </div>
@@ -1970,16 +2145,17 @@ function renderBattle() {
     <div class="leaderInner mascotLeader">
       <div class="leaderMascot playerMascot" role="img" aria-label="猫リーダー"></div>
       <div class="leaderVitals">
+        <span class="orderBadge ${playerOrderClass}">${playerOrder}</span>
         <span class="hpBadge">${playerHp}</span>
       </div>
     </div>
   `;
   const enemyLeaderEl = document.getElementById("enemyLeaderAvatar");
-  enemyLeaderEl.title = `${sideLabel(opp)} HP ${enemyHp}`;
+  enemyLeaderEl.title = `${sideLabel(opp)} ${enemyOrder} / HP ${enemyHp}`;
   enemyLeaderEl.setAttribute("data-hp", String(enemyHp));
   const playerLeaderEl = document.getElementById("playerLeaderAvatar");
   if (playerLeaderEl) {
-    playerLeaderEl.title = `${sideLabel(side)} HP ${playerHp}`;
+    playerLeaderEl.title = `${sideLabel(side)} ${playerOrder} / HP ${playerHp}`;
     playerLeaderEl.setAttribute("data-hp", String(playerHp));
   }
   enemyLeaderEl.classList.toggle("leaderTargetable", canSelectedAttackLeaderNow());
@@ -2190,7 +2366,7 @@ function setupBattlePage() {
     if (leaderBtn) leaderBtn.addEventListener("click", attackLeader);
     document.getElementById("enemyLeaderAvatar").addEventListener("click", attackLeader);
     document.getElementById("endTurnBtn").addEventListener("click", endTurn);
-    document.getElementById("resetBtn").addEventListener("click", showBuilderScreen);
+    document.getElementById("resetBtn").addEventListener("click", confirmBackToBuilder);
     const logOpenBtn = document.getElementById("logOpenBtn");
     const logCloseBtn = document.getElementById("logCloseBtn");
     const logBackdrop = document.getElementById("logModalBackdrop");

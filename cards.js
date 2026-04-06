@@ -63,6 +63,42 @@
     onPlay: [{ type: "destroy_all_other_units" }],
     collectible: false
   },
+  {
+    id: "unit_lion_champion",
+    name: "獅王の先鋒",
+    cost: 5,
+    atk: 5,
+    hp: 6,
+    type: "unit",
+    tags: ["neutral"],
+    keywords: ["storm"],
+    onPlay: [{ type: "damage_enemy_leader", amount: 2 }],
+    collectible: false
+  },
+  {
+    id: "spell_lion_command",
+    name: "王者の号令",
+    cost: 2,
+    type: "spell",
+    tags: ["neutral"],
+    effects: [
+      { type: "damage_enemy_unit_or_leader", amount: 4, leaderFallback: 3 },
+      { type: "draw", amount: 1 }
+    ],
+    collectible: false
+  },
+  {
+    id: "spell_lion_wrath",
+    name: "百獣の粛清",
+    cost: 4,
+    type: "spell",
+    tags: ["neutral"],
+    effects: [
+      { type: "destroy_enemy_highest_atk" },
+      { type: "damage_all_enemy_units", amount: 2 }
+    ],
+    collectible: false
+  },
 
   { id: "spell_heal", name: "ヒールベリー", cost: 2, type: "spell", tags: ["holy"], effects: [{ type: "heal_leader", amount: 3 }] },
   { id: "spell_fire", name: "ファイアボルト", cost: 2, type: "spell", tags: ["dragon"], effects: [{ type: "damage_enemy_unit_or_leader", amount: 3, leaderFallback: 2 }] },
