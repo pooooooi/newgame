@@ -226,6 +226,20 @@ function missionRewardLabelForSide(side, mission) {
   return isSecondPlayer(side) ? `${mission.rewardText} + 後攻補正` : mission.rewardText;
 }
 
+function missionDisplayLabel(mission) {
+  if (!mission) return "-";
+
+  const shortLabels = {
+    play_2_cards: "2枚使う",
+    summon_2_units: "2体召喚",
+    deal_4_to_leader: "4点与える",
+    evolve_once: "1回進化"
+  };
+
+  const label = shortLabels[mission.id] || mission.text;
+  return `${label} ${mission.progress}/${mission.target}`;
+}
+
 function activeSide() {
   return state.activeSide || "player";
 }
@@ -822,10 +836,11 @@ function initializeBattleFromDeck(deckCounts) {
   drawCard("enemy", 6);
   drawCard("enemy", 1);
   addCardToHand("enemy", "token_coin");
+  addCardToHand("enemy", "token_jouma_tears");
   beginTurn("player", false);
 
   log(`ゲーム開始。${sideLabel("player")}のターンです。`);
-  log(`${sideLabel("enemy")}は後攻ボーナス: 初手+1枚 / コイン1枚。`);
+  log(`${sideLabel("enemy")}は後攻ボーナス: 初手+1枚 / コイン1枚 / じょうまの涙1枚。`);
 }
 
 function beginTurn(side, increasePp = true) {
@@ -1491,7 +1506,7 @@ function renderBattle() {
   const missionChipEl = document.getElementById("missionChip");
   if (missionEl) {
     const m = missionFor(side);
-    missionEl.textContent = m ? `${m.progress}/${m.target}` : "-";
+    missionEl.textContent = missionDisplayLabel(m);
     if (missionChipEl) {
       missionChipEl.title = m
         ? `${m.text} (${m.progress}/${m.target}) / ${missionRewardLabelForSide(side, m)}`

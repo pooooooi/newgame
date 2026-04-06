@@ -102,6 +102,12 @@ h1 {
   line-height: 1;
 }
 
+.missionChip {
+  width: 100%;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
 .chipIcon {
   width: 22px;
   height: 22px;
@@ -134,6 +140,14 @@ h1 {
 .missionChip strong {
   font-size: 18px;
   letter-spacing: 0.2px;
+}
+
+.missionChip strong {
+  min-width: 0;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chipPp strong {
@@ -2663,7 +2677,10 @@ button:disabled {
   }
 
   .battleApp.compact .missionChip {
-    display: none;
+    display: inline-flex;
+    min-height: 28px;
+    padding: 4px 8px;
+    border-radius: 9px;
   }
 
   .battleApp.compact .leaderRow {
@@ -3198,6 +3215,19 @@ button:disabled {
     font-size: 11px;
   }
 
+  .pageBattle .battleApp.compact .missionChip {
+    display: inline-flex;
+    width: 100%;
+    min-height: 26px;
+    padding: 4px 8px;
+    border-radius: 10px;
+  }
+
+  .pageBattle .battleApp.compact .missionChip strong {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
   .pageBattle .battleApp.compact .leaderCard {
     min-height: 42px;
     padding: 4px 8px;
@@ -3294,6 +3324,10 @@ button:disabled {
   }
 
   .pageBattle .battleApp.compact .inspectText {
+    font-size: 9px;
+  }
+
+  .pageBattle .battleApp.compact .missionChip strong {
     font-size: 9px;
   }
 }

@@ -104,6 +104,15 @@
     effects: [{ type: "coin_pp", amount: 1 }],
     collectible: false
   },
+  {
+    id: "token_jouma_tears",
+    name: "じょうまの涙",
+    cost: 0,
+    type: "spell",
+    tags: ["neutral"],
+    effects: [{ type: "damage_random_enemy_unit", amount: 2 }],
+    collectible: false
+  },
 
   { id: "evo_lizard", name: "リザードン改", cost: 2, atk: 4, hp: 5, type: "evolution", tags: ["dragon"], evolvesFrom: "unit_lizard", grantsKeywords: ["storm"] },
   { id: "evo_tortoise", name: "ハイドロトータス", cost: 2, atk: 4, hp: 6, type: "evolution", tags: ["sea"], evolvesFrom: "unit_tortoise", grantsKeywords: ["ward"] },
