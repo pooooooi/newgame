@@ -2491,6 +2491,88 @@ button:disabled {
   font-size: 12px;
 }
 
+.pageDeck .cpuDifficultyPanel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(106, 150, 224, 0.56);
+  background:
+    radial-gradient(circle at 86% 16%, rgba(122, 190, 255, 0.14), transparent 38%),
+    linear-gradient(172deg, rgba(13, 26, 54, 0.86), rgba(8, 17, 36, 0.9));
+}
+
+.pageDeck .cpuDifficultyHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pageDeck .cpuDifficultyHead strong {
+  font-size: 13px;
+  color: #e7f1ff;
+}
+
+.pageDeck #cpuDifficultyCurrent {
+  font-size: 11px;
+  color: #92c3ff;
+}
+
+.pageDeck .cpuDifficultyPicker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pageDeck .cpuDifficultyOption {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 11px;
+  border: 1px solid rgba(96, 139, 208, 0.56);
+  background: rgba(11, 24, 50, 0.78);
+  cursor: pointer;
+  transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.pageDeck .cpuDifficultyOption:hover {
+  border-color: rgba(147, 197, 255, 0.72);
+  transform: translateY(-1px);
+}
+
+.pageDeck .cpuDifficultyOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pageDeck .cpuDifficultySize {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ecf5ff;
+}
+
+.pageDeck .cpuDifficultyAnimal {
+  font-size: 11px;
+  color: #9fc0eb;
+}
+
+.pageDeck .cpuDifficultyOption.isActive {
+  border-color: rgba(122, 237, 255, 0.88);
+  background:
+    radial-gradient(circle at 88% 22%, rgba(130, 223, 255, 0.22), transparent 44%),
+    rgba(14, 34, 67, 0.88);
+  box-shadow: 0 8px 20px rgba(40, 136, 212, 0.25);
+}
+
+.pageDeck .cpuDifficultyHint {
+  margin: 0;
+  font-size: 10px;
+  color: #86addf;
+}
+
 .pageDeck .deckLaunchActions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2624,6 +2706,15 @@ button:disabled {
   .pageDeck .qty {
     min-width: 32px;
     font-size: 13px;
+  }
+
+  .pageDeck .cpuDifficultyPanel {
+    padding: 9px;
+    gap: 7px;
+  }
+
+  .pageDeck .cpuDifficultyPicker {
+    grid-template-columns: 1fr;
   }
 
   .pageDeck .deckLaunchActions {

@@ -51,6 +51,14 @@
     <section class="panel deckSidePanel">
       <h1>デッキ内容</h1>
       <div id="deckSummary" class="log deckSummaryLog"></div>
+      <div id="cpuDifficultyPanel" class="cpuDifficultyPanel" role="group" aria-label="CPUの強さ">
+        <div class="cpuDifficultyHead">
+          <strong>CPUの強さ</strong>
+          <span id="cpuDifficultyCurrent">中 / キツネ</span>
+        </div>
+        <div id="cpuDifficultyPicker" class="cpuDifficultyPicker"></div>
+        <p class="cpuDifficultyHint">サイズ順: ネズミ → キツネ → オオカミ → ライオン</p>
+      </div>
       <div class="deckLaunchActions">
         <button id="startGameBtn">VS CPUで開始</button>
         <button id="startPvpBtn">対人戦で開始</button>

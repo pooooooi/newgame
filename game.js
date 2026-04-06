@@ -7,6 +7,93 @@ const DECK_MAX = 30;
 const MAX_BOARD = 4;
 const DECK_STORAGE_KEY = "monverse_selected_deck_v1";
 const BATTLE_MODE_KEY = "monverse_battle_mode_v1";
+const AI_DIFFICULTY_KEY = "monverse_ai_difficulty_v1";
+
+const AI_DIFFICULTIES = [
+  {
+    id: "small",
+    sizeLabel: "小",
+    animal: "ネズミ",
+    displayLabel: "小 / ネズミ",
+    ai: {
+      playLoopLimit: 12,
+      spellSkipChance: 0.58,
+      evolveChance: 0.22,
+      followerAttackChance: 0.8,
+      smartCardChoice: false,
+      smartAttackChoice: false,
+      smartEvolve: false,
+      lethalAware: false,
+      playTopPool: 3,
+      attackTopPool: 3,
+      playScoreJitter: 4.6,
+      tradeAggroThreshold: 7
+    }
+  },
+  {
+    id: "medium",
+    sizeLabel: "中",
+    animal: "キツネ",
+    displayLabel: "中 / キツネ",
+    ai: {
+      playLoopLimit: 16,
+      spellSkipChance: 0.34,
+      evolveChance: 0.54,
+      followerAttackChance: 0.58,
+      smartCardChoice: true,
+      smartAttackChoice: false,
+      smartEvolve: false,
+      lethalAware: false,
+      playTopPool: 3,
+      attackTopPool: 3,
+      playScoreJitter: 2.6,
+      tradeAggroThreshold: 6.2
+    }
+  },
+  {
+    id: "large",
+    sizeLabel: "大",
+    animal: "オオカミ",
+    displayLabel: "大 / オオカミ",
+    ai: {
+      playLoopLimit: 20,
+      spellSkipChance: 0.14,
+      evolveChance: 0.72,
+      followerAttackChance: 0.47,
+      smartCardChoice: true,
+      smartAttackChoice: true,
+      smartEvolve: true,
+      lethalAware: true,
+      playTopPool: 2,
+      attackTopPool: 2,
+      playScoreJitter: 1.3,
+      tradeAggroThreshold: 5.8
+    }
+  },
+  {
+    id: "lion",
+    sizeLabel: "激つよ",
+    animal: "ライオン",
+    displayLabel: "激つよ / ライオン",
+    ai: {
+      playLoopLimit: 24,
+      spellSkipChance: 0.04,
+      evolveChance: 0.92,
+      followerAttackChance: 0.34,
+      smartCardChoice: true,
+      smartAttackChoice: true,
+      smartEvolve: true,
+      lethalAware: true,
+      playTopPool: 1,
+      attackTopPool: 1,
+      playScoreJitter: 0.45,
+      tradeAggroThreshold: 4.8
+    }
+  }
+];
+
+const DEFAULT_AI_DIFFICULTY = "medium";
+const AI_DIFFICULTY_MAP = Object.fromEntries(AI_DIFFICULTIES.map(diff => [diff.id, diff]));
 
 const KEYWORD_LABELS = {
   ward: "守護",
@@ -61,7 +148,8 @@ const state = {
   inspectCardId: null,
   secondSide: "enemy",
   handDrag: null,
-  suppressHandClickUntil: 0
+  suppressHandClickUntil: 0,
+  aiDifficulty: DEFAULT_AI_DIFFICULTY
 };
 
 function cloneData(value) {
@@ -95,6 +183,27 @@ function saveSelectedDeck(counts) {
 
 function saveBattleMode(mode) {
   localStorage.setItem(BATTLE_MODE_KEY, mode);
+}
+
+function normalizeAiDifficulty(id) {
+  return AI_DIFFICULTY_MAP[id] ? id : DEFAULT_AI_DIFFICULTY;
+}
+
+function saveAiDifficulty(id) {
+  localStorage.setItem(AI_DIFFICULTY_KEY, normalizeAiDifficulty(id));
+}
+
+function loadAiDifficulty() {
+  return normalizeAiDifficulty(localStorage.getItem(AI_DIFFICULTY_KEY));
+}
+
+function aiDifficultyDef(id = state.aiDifficulty) {
+  return AI_DIFFICULTY_MAP[normalizeAiDifficulty(id)] || AI_DIFFICULTY_MAP[DEFAULT_AI_DIFFICULTY];
+}
+
+function aiDifficultyLabel(id = state.aiDifficulty) {
+  const diff = aiDifficultyDef(id);
+  return `${diff.sizeLabel} / ${diff.animal}`;
 }
 
 function loadBattleMode() {
@@ -370,8 +479,87 @@ function buildRandomCounts(size) {
   return sanitizeBuilderCounts(counts);
 }
 
+function buildRandomCountsFromPool(size, inputPool) {
+  const poolCards = (inputPool || collectibleCards).filter(card => card.collectible !== false);
+  const counts = {};
+  for (const card of collectibleCards) counts[card.id] = 0;
+
+  const fallbackUnits = collectibleCards.filter(card => card.type !== "evolution");
+  const usableUnits = poolCards.filter(card => card.type !== "evolution");
+
+  for (let i = 0; i < size; i++) {
+    const selectable = poolCards.filter(card => canAddBuilderCard(counts, card));
+    const pool = selectable.length
+      ? selectable
+      : usableUnits.length
+        ? usableUnits
+        : fallbackUnits;
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    counts[picked.id] += 1;
+  }
+
+  return sanitizeBuilderCounts(counts);
+}
+
 function buildRandomDeck(size) {
   return shuffle(buildDeckFromCounts(buildRandomCounts(size)));
+}
+
+function injectLionSignatureCard(deck) {
+  const signature = cardMap.unit_eternal_jouma;
+  if (!signature) return deck;
+
+  const next = [...deck];
+  if (next.some(card => card.id === signature.id)) return shuffle(next);
+
+  if (!next.length) {
+    next.push(cloneData(signature));
+    return shuffle(next);
+  }
+
+  const replaceIndex = Math.floor(Math.random() * next.length);
+  next[replaceIndex] = cloneData(signature);
+  return shuffle(next);
+}
+
+function buildEnemyDeckForAi(size, playerDeckCounts, difficultyId = state.aiDifficulty) {
+  const diffId = normalizeAiDifficulty(difficultyId);
+
+  if (diffId === "small") {
+    const novicePool = collectibleCards.filter(card =>
+      card.type !== "evolution" && card.cost <= 4
+    );
+    const counts = buildRandomCountsFromPool(size, novicePool);
+    return shuffle(buildDeckFromCounts(counts));
+  }
+
+  if (diffId === "medium") {
+    return buildRandomDeck(size);
+  }
+
+  if (diffId === "large") {
+    const advancedPool = collectibleCards.filter(card =>
+      card.type === "evolution"
+      || card.cost >= 2
+      || Boolean(card.keywords?.length)
+      || Boolean(card.onPlay?.length)
+      || Boolean(card.effects?.length)
+      || Boolean(card.combo)
+      || Boolean(card.awakening)
+    );
+    const counts = buildRandomCountsFromPool(size, advancedPool);
+    return shuffle(buildDeckFromCounts(counts));
+  }
+
+  if (diffId === "lion") {
+    const baseDeck = isDeckValid(playerDeckCounts)
+      ? shuffle(buildDeckFromCounts(playerDeckCounts))
+      : shuffle(buildDeckFromCounts(buildRandomCountsFromPool(size, collectibleCards)));
+    return injectLionSignatureCard(baseDeck);
+  }
+
+  const fallback = buildRandomCountsFromPool(size, collectibleCards);
+  return shuffle(buildDeckFromCounts(fallback));
 }
 
 function shuffle(arr) {
@@ -580,6 +768,12 @@ function addCardToHand(side, cardId) {
   return true;
 }
 
+function grantSecondPlayerBonus(side) {
+  drawCard(side, 1);
+  addCardToHand(side, "token_coin");
+  addCardToHand(side, "token_jouma_tears");
+}
+
 function resolveEffects(effects, side, runtime = {}) {
   const data = getSideData(side);
 
@@ -694,6 +888,29 @@ function resolveEffects(effects, side, runtime = {}) {
       destroyUnit(data.enemyBoard, bestIdx, side === "player" ? "enemy" : "player", runtime);
       continue;
     }
+
+    if (effect.type === "destroy_all_units") {
+      while (state.playerBoard.length) {
+        destroyUnit(state.playerBoard, state.playerBoard.length - 1, "player", runtime);
+      }
+      while (state.enemyBoard.length) {
+        destroyUnit(state.enemyBoard, state.enemyBoard.length - 1, "enemy", runtime);
+      }
+      continue;
+    }
+
+    if (effect.type === "destroy_all_other_units") {
+      const sourceUnitId = runtime.sourceUnitId || null;
+      for (let i = state.playerBoard.length - 1; i >= 0; i--) {
+        if (sourceUnitId && state.playerBoard[i]?.id === sourceUnitId) continue;
+        destroyUnit(state.playerBoard, i, "player", runtime);
+      }
+      for (let i = state.enemyBoard.length - 1; i >= 0; i--) {
+        if (sourceUnitId && state.enemyBoard[i]?.id === sourceUnitId) continue;
+        destroyUnit(state.enemyBoard, i, "enemy", runtime);
+      }
+      continue;
+    }
   }
 
   cleanupDeadUnits(runtime);
@@ -760,7 +977,7 @@ function playCardFromHand(side, handIndex, runtime = {}) {
     else log(`相手は ${card.name} を召喚。`);
     if (side === "player") burstFx("play");
 
-    if (unit.onPlay.length) resolveEffects(unit.onPlay, side, runtime);
+    if (unit.onPlay.length) resolveEffects(unit.onPlay, side, { ...runtime, sourceUnitId: unit.id });
     checkAndTriggerCombo(card, side, runtime);
     triggerAwakening(card, side, runtime);
     return true;
@@ -786,6 +1003,8 @@ function startGameFromBuilder() {
     renderBuilder();
     return;
   }
+  state.aiDifficulty = normalizeAiDifficulty(state.aiDifficulty || loadAiDifficulty());
+  saveAiDifficulty(state.aiDifficulty);
   saveBattleMode("ai");
   saveSelectedDeck(state.builderCounts);
   showBattleScreen();
@@ -810,10 +1029,11 @@ function initializeBattleFromDeck(deckCounts) {
   state.maxPp = 1;
   state.pp = 1;
   state.battleMode = loadBattleMode();
+  state.aiDifficulty = loadAiDifficulty();
   state.playerDeck = shuffle(buildDeckFromCounts(deckCounts));
   state.enemyDeck = state.battleMode === "pvp"
     ? shuffle(buildDeckFromCounts(deckCounts))
-    : buildRandomDeck(deckSize);
+    : buildEnemyDeckForAi(deckSize, deckCounts, state.aiDifficulty);
   state.playerHand = [];
   state.enemyHand = [];
   state.playerBoard = [];
@@ -826,21 +1046,35 @@ function initializeBattleFromDeck(deckCounts) {
   state.enemyMissionStats = initMissionStats();
   state.selected = null;
   state.inspectCardId = null;
-  state.secondSide = "enemy";
   state.activeSide = "player";
   state.gameOver = false;
   state.log = [];
   state.phase = "battle";
 
+  const firstSide = state.battleMode === "ai"
+    ? (Math.random() < 0.5 ? "player" : "enemy")
+    : "player";
+  state.secondSide = otherSide(firstSide);
+
   drawCard("player", 6);
   drawCard("enemy", 6);
-  drawCard("enemy", 1);
-  addCardToHand("enemy", "token_coin");
-  addCardToHand("enemy", "token_jouma_tears");
-  beginTurn("player", false);
+  grantSecondPlayerBonus(state.secondSide);
 
-  log(`ゲーム開始。${sideLabel("player")}のターンです。`);
-  log(`${sideLabel("enemy")}は後攻ボーナス: 初手+1枚 / コイン1枚 / じょうまの涙1枚。`);
+  log(`ゲーム開始。${sideLabel(firstSide)}が先攻。`);
+  if (state.battleMode === "ai") {
+    log(`CPU難易度: ${aiDifficultyDef(state.aiDifficulty).displayLabel}`);
+  }
+  log(`${sideLabel(state.secondSide)}は後攻ボーナス: 初手+1枚 / コイン1枚 / じょうまの涙1枚。`);
+
+  if (firstSide === "player") {
+    beginTurn("player", false);
+    return;
+  }
+
+  enemyTurn();
+  if (!state.gameOver) {
+    beginTurn("player", false);
+  }
 }
 
 function beginTurn(side, increasePp = true) {
@@ -1092,9 +1326,187 @@ function startPlayerTurn() {
   beginTurn("player", true);
 }
 
+function clamp01(v) {
+  return Math.max(0, Math.min(1, v));
+}
+
+function rollChance(chance) {
+  return Math.random() < clamp01(chance);
+}
+
+function estimateUnitThreatForAi(unit) {
+  if (!unit) return 0;
+  let score = (unit.atk || 0) * 1.6 + (unit.hp || unit.maxHp || 0) * 0.85;
+  if (hasKeyword(unit, "ward")) score += 2.1;
+  if (hasKeyword(unit, "storm")) score += 3.2;
+  if (hasKeyword(unit, "rush")) score += 1.2;
+  if (unit.evolved) score += 1.4;
+  return score;
+}
+
+function scoreEnemyEffect(effect) {
+  const amount = effect.amount || 0;
+  const playerBoardCount = state.playerBoard.length;
+  const enemyBoardCount = state.enemyBoard.length;
+
+  if (effect.type === "draw") return (amount || 1) * 1.45;
+  if (effect.type === "heal_leader") return (state.enemyHp <= 12 ? 1.2 : 0.45) * amount;
+  if (effect.type === "damage_enemy_leader") return amount * 1.8;
+  if (effect.type === "damage_random_enemy_unit") return playerBoardCount > 0 ? amount * 1.3 : -1.4;
+  if (effect.type === "damage_all_enemy_units") return playerBoardCount > 0 ? amount * (0.95 + playerBoardCount * 0.48) : -1.8;
+  if (effect.type === "damage_enemy_unit_or_leader") {
+    if (playerBoardCount > 0) return amount * 1.35;
+    return (effect.leaderFallback ?? amount) * 1.6;
+  }
+  if (effect.type === "summon") {
+    const count = effect.count || 1;
+    const freeSlots = Math.max(0, MAX_BOARD - enemyBoardCount);
+    if (freeSlots <= 0) return -1.8;
+    const unit = cardMap[effect.cardId];
+    const summonValue = unit ? estimateUnitThreatForAi(unit) * 0.56 : 1.4;
+    return summonValue * Math.min(count, freeSlots);
+  }
+  if (effect.type === "buff_all_allies") {
+    if (enemyBoardCount <= 0) return -0.8;
+    const atk = effect.atk || 0;
+    const hp = effect.hp || 0;
+    return (atk * 1.15 + hp * 0.9) * enemyBoardCount;
+  }
+  if (effect.type === "gain_pp") return amount * 1.55;
+  if (effect.type === "coin_pp") return amount * 1.75;
+  if (effect.type === "destroy_enemy_highest_atk") return playerBoardCount > 0 ? 4.4 : -2.2;
+  if (effect.type === "destroy_all_units") {
+    return (playerBoardCount * 3.2) - (enemyBoardCount * 2.6);
+  }
+  if (effect.type === "destroy_all_other_units") {
+    return (playerBoardCount * 3.2) - (enemyBoardCount * 2.9);
+  }
+  if (effect.type === "heal_all_allies") return enemyBoardCount > 0 ? amount * enemyBoardCount * 0.78 : -0.7;
+  if (effect.type === "self_damage") return -(amount * 2.1);
+  return 0.4;
+}
+
+function scoreEnemyPlayCard(card) {
+  let score = 0;
+
+  if (card.type === "unit") {
+    const selfThreat = estimateUnitThreatForAi(card);
+    score += selfThreat;
+    for (const effect of card.onPlay || []) score += scoreEnemyEffect(effect);
+    if ((card.onPlay || []).some(effect => effect.type === "destroy_all_units")) {
+      // Board wipe unit usually removes itself as well, so lower the body value.
+      score -= selfThreat * 0.9;
+    }
+    if (card.combo) score += 0.6;
+    if (card.awakening) {
+      const hpThreshold = card.awakening.hpAtMost ?? 10;
+      score += state.enemyHp <= hpThreshold ? 1.1 : 0.25;
+    }
+    if (state.enemyBoard.length >= MAX_BOARD - 1) score -= 0.45;
+  } else if (card.type === "spell") {
+    const effects = card.effects || [];
+    for (const effect of effects) score += scoreEnemyEffect(effect);
+    if (card.combo) score += 0.5;
+    if (card.awakening) {
+      const hpThreshold = card.awakening.hpAtMost ?? 10;
+      score += state.enemyHp <= hpThreshold ? 0.95 : 0.2;
+    }
+  } else if (card.type === "evolution") {
+    score += card.atk * 0.7 + card.hp * 0.6 - card.cost * 0.35;
+  }
+
+  score -= (card.cost || 0) * 0.12;
+  return score;
+}
+
+function pickEnemyHandIndexToPlay(enemyPp, aiConfig) {
+  const candidates = [];
+
+  for (let i = 0; i < state.enemyHand.length; i++) {
+    const card = state.enemyHand[i];
+    if (card.type === "evolution") continue;
+    if (card.cost > enemyPp.value) continue;
+    if (card.type === "unit" && state.enemyBoard.length >= MAX_BOARD) continue;
+    if (card.type === "spell" && rollChance(aiConfig.spellSkipChance)) continue;
+
+    const jitter = (Math.random() - 0.5) * (aiConfig.playScoreJitter || 0);
+    candidates.push({ index: i, score: scoreEnemyPlayCard(card) + jitter });
+  }
+
+  if (!candidates.length) return -1;
+  if (!aiConfig.smartCardChoice) {
+    return candidates[Math.floor(Math.random() * candidates.length)].index;
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  const poolSize = Math.max(1, Math.min(candidates.length, aiConfig.playTopPool || 1));
+  return candidates[Math.floor(Math.random() * poolSize)].index;
+}
+
+function shouldEnemyEvolveUnit(unit, evoCard, enemyPp, aiConfig) {
+  if (!unit || !evoCard) return false;
+  if (evoCard.cost > enemyPp.value) return false;
+  if (!aiConfig.smartEvolve) return rollChance(aiConfig.evolveChance);
+
+  const noWard = getWardUnits(state.playerBoard).length === 0;
+  const grantsStorm = (evoCard.grantsKeywords || []).includes("storm");
+  if (grantsStorm && noWard && state.playerHp <= evoCard.atk) return true;
+  if (unit.hp <= 1 && state.playerBoard.length === 0) return rollChance(aiConfig.evolveChance * 0.5);
+  if (state.playerBoard.length >= 2) return rollChance(aiConfig.evolveChance + 0.12);
+  if (state.enemyHp <= 8) return rollChance(aiConfig.evolveChance + 0.08);
+  return rollChance(aiConfig.evolveChance);
+}
+
+function pickPlayerTargetForEnemyAttack(attacker, aiConfig, requireWard = false) {
+  const candidates = [];
+  for (let i = 0; i < state.playerBoard.length; i++) {
+    const target = state.playerBoard[i];
+    if (requireWard && !hasKeyword(target, "ward")) continue;
+
+    const canKill = attacker.atk >= target.hp;
+    const survives = attacker.hp > target.atk;
+    let score = estimateUnitThreatForAi(target);
+    score += canKill ? 2.3 : -1.3;
+    score += survives ? 1.35 : -0.65;
+    if (hasKeyword(target, "ward")) score += 0.8;
+    candidates.push({ index: i, target, canKill, survives, score });
+  }
+
+  if (!candidates.length) return null;
+  if (!aiConfig.smartAttackChoice) return candidates[0];
+
+  candidates.sort((a, b) => b.score - a.score);
+  const poolSize = Math.max(1, Math.min(candidates.length, aiConfig.attackTopPool || 1));
+  return candidates[Math.floor(Math.random() * poolSize)];
+}
+
+function enemyPotentialLeaderDamage() {
+  if (getWardUnits(state.playerBoard).length > 0) return 0;
+  let total = 0;
+  for (const unit of state.enemyBoard) {
+    if (unit && canAttackLeader(unit)) total += unit.atk;
+  }
+  return total;
+}
+
+function shouldEnemyAttackFollower(attacker, aiConfig, pickedTarget) {
+  if (!pickedTarget) return false;
+  if (!canAttackFollower(attacker)) return false;
+  if (!canAttackLeader(attacker)) return true;
+  if (aiConfig.lethalAware && enemyPotentialLeaderDamage() >= state.playerHp) return false;
+
+  if (aiConfig.smartAttackChoice) {
+    if (pickedTarget.canKill && pickedTarget.survives && pickedTarget.score >= aiConfig.tradeAggroThreshold) return true;
+    if (pickedTarget.canKill && hasKeyword(pickedTarget.target, "storm")) return true;
+  }
+
+  return rollChance(aiConfig.followerAttackChance);
+}
+
 function enemyTurn() {
   if (state.phase !== "battle" || state.gameOver) return;
 
+  const aiConfig = aiDifficultyDef(state.aiDifficulty).ai;
   setMissionForTurn("enemy");
   const enemyPp = { value: state.maxPp };
   drawCard("enemy", 1);
@@ -1103,22 +1515,15 @@ function enemyTurn() {
 
   let acted = true;
   let safety = 0;
-  while (acted && safety < 20) {
+  while (acted && safety < aiConfig.playLoopLimit) {
     acted = false;
     safety += 1;
 
-    for (let i = 0; i < state.enemyHand.length; i++) {
-      const card = state.enemyHand[i];
-      if (card.type === "evolution") continue;
-      if (card.cost > enemyPp.value) continue;
+    const handIndex = pickEnemyHandIndexToPlay(enemyPp, aiConfig);
+    if (handIndex < 0) break;
 
-      if (card.type === "spell" && Math.random() < 0.35) continue;
-      if (card.type === "unit" && state.enemyBoard.length >= MAX_BOARD) continue;
-
-      if (playCardFromHand("enemy", i, { enemyPp })) {
-        acted = true;
-        break;
-      }
+    if (playCardFromHand("enemy", handIndex, { enemyPp })) {
+      acted = true;
     }
   }
 
@@ -1129,7 +1534,7 @@ function enemyTurn() {
     if (evoHandIndex < 0) continue;
 
     const evoCard = state.enemyHand[evoHandIndex];
-    if (evoCard.cost > enemyPp.value || Math.random() < 0.45) continue;
+    if (!shouldEnemyEvolveUnit(unit, evoCard, enemyPp, aiConfig)) continue;
 
     enemyPp.value -= evoCard.cost;
     state.enemyHand.splice(evoHandIndex, 1);
@@ -1144,7 +1549,8 @@ function enemyTurn() {
 
     const playerWards = getWardUnits(state.playerBoard);
     if (playerWards.length > 0 && canAttackFollower(enemy)) {
-      const target = playerWards[0];
+      const pickedWard = pickPlayerTargetForEnemyAttack(enemy, aiConfig, true);
+      const target = pickedWard?.target || playerWards[0];
       target.hp -= enemy.atk;
       enemy.hp -= target.atk;
       enemy.canAttack = false;
@@ -1154,8 +1560,9 @@ function enemyTurn() {
       continue;
     }
 
-    if (state.playerBoard.length > 0 && canAttackFollower(enemy) && Math.random() > 0.42) {
-      const target = state.playerBoard[0];
+    const pickedTarget = pickPlayerTargetForEnemyAttack(enemy, aiConfig, false);
+    if (shouldEnemyAttackFollower(enemy, aiConfig, pickedTarget)) {
+      const target = pickedTarget.target;
       target.hp -= enemy.atk;
       enemy.hp -= target.atk;
       enemy.canAttack = false;
@@ -1240,6 +1647,8 @@ function effectToText(effect) {
   if (effect.type === "gain_pp") return `PPを${effect.amount || 0}回復`;
   if (effect.type === "coin_pp") return `PPを${effect.amount || 0}増やす（上限超過可）`;
   if (effect.type === "destroy_enemy_highest_atk") return "相手の攻撃力最大フォロワーを破壊";
+  if (effect.type === "destroy_all_units") return "場の全フォロワーを破壊";
+  if (effect.type === "destroy_all_other_units") return "自分以外の場の全フォロワーを破壊";
   if (effect.type === "heal_all_allies") return `味方全体を${effect.amount || 0}回復`;
   if (effect.type === "self_damage") return `自リーダーに${effect.amount || 0}ダメージ`;
   return effect.type;
@@ -1406,6 +1815,38 @@ function unitLabel(unit) {
   return `${unit.name} [${unit.atk}/${unit.hp}]${unit.evolved ? " (進化済)" : ""}${kw ? ` <${kw}>` : ""}`;
 }
 
+function renderCpuDifficultyPicker() {
+  const panel = document.getElementById("cpuDifficultyPanel");
+  if (!panel) return;
+  const picker = document.getElementById("cpuDifficultyPicker");
+  if (!picker) return;
+
+  const current = normalizeAiDifficulty(state.aiDifficulty || loadAiDifficulty());
+  state.aiDifficulty = current;
+
+  const currentEl = document.getElementById("cpuDifficultyCurrent");
+  if (currentEl) currentEl.textContent = aiDifficultyLabel(current);
+
+  picker.innerHTML = AI_DIFFICULTIES.map(diff => {
+    const checked = diff.id === current;
+    return `
+      <label class="cpuDifficultyOption${checked ? " isActive" : ""}">
+        <input type="radio" name="cpuDifficulty" value="${diff.id}" ${checked ? "checked" : ""}>
+        <span class="cpuDifficultySize">${diff.sizeLabel}</span>
+        <span class="cpuDifficultyAnimal">${diff.animal}</span>
+      </label>
+    `;
+  }).join("");
+
+  for (const input of picker.querySelectorAll("input[name='cpuDifficulty']")) {
+    input.addEventListener("change", () => {
+      state.aiDifficulty = normalizeAiDifficulty(input.value);
+      saveAiDifficulty(state.aiDifficulty);
+      renderCpuDifficultyPicker();
+    });
+  }
+}
+
 function renderBuilder() {
   const deckCount = getDeckCount(state.builderCounts);
   const dependencyOk = hasValidEvolutionDependencies(state.builderCounts);
@@ -1423,6 +1864,7 @@ function renderBuilder() {
   startBtn.disabled = !valid;
   const startPvpBtn = document.getElementById("startPvpBtn");
   if (startPvpBtn) startPvpBtn.disabled = !valid;
+  renderCpuDifficultyPicker();
 
   const catalog = document.getElementById("builderCatalog");
   catalog.innerHTML = "";
@@ -1701,6 +2143,7 @@ function hydrateBuilderCountsFromStorage() {
 
 function setupBuilderPage() {
   state.phase = "build";
+  state.aiDifficulty = loadAiDifficulty();
   hydrateBuilderCountsFromStorage();
 
   document.getElementById("startGameBtn").addEventListener("click", startGameFromBuilder);

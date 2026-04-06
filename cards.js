@@ -52,6 +52,17 @@
   { id: "unit_bramble_guard", name: "ブランブルガード", cost: 2, atk: 1, hp: 5, type: "unit", tags: ["forest"], keywords: ["ward"], evolvesTo: "evo_bramble_guard" },
   { id: "unit_moon_blade", name: "ムーンブレード", cost: 3, atk: 3, hp: 2, type: "unit", tags: ["holy"], keywords: ["rush"], evolvesTo: "evo_moon_blade" },
   { id: "unit_grave_baron", name: "グレイブバロン", cost: 5, atk: 4, hp: 4, type: "unit", tags: ["shadow"], onPlay: [{ type: "summon", cardId: "token_zombie", count: 1 }], evolvesTo: "evo_grave_baron" },
+  {
+    id: "unit_eternal_jouma",
+    name: "エターナルじょうま",
+    cost: 8,
+    atk: 7,
+    hp: 7,
+    type: "unit",
+    tags: ["neutral"],
+    onPlay: [{ type: "destroy_all_other_units" }],
+    collectible: false
+  },
 
   { id: "spell_heal", name: "ヒールベリー", cost: 2, type: "spell", tags: ["holy"], effects: [{ type: "heal_leader", amount: 3 }] },
   { id: "spell_fire", name: "ファイアボルト", cost: 2, type: "spell", tags: ["dragon"], effects: [{ type: "damage_enemy_unit_or_leader", amount: 3, leaderFallback: 2 }] },
