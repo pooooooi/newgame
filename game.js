@@ -79,19 +79,19 @@ const AI_DIFFICULTIES = [
     animal: "ライオン",
     displayLabel: "激つよ / ライオン",
     ai: {
-      playLoopLimit: 32,
+      playLoopLimit: 40,
       spellSkipChance: 0,
-      evolveChance: 0.98,
-      followerAttackChance: 0.1,
-      faceBias: 0.88,
+      evolveChance: 1,
+      followerAttackChance: 0.03,
+      faceBias: 0.94,
       smartCardChoice: true,
       smartAttackChoice: true,
       smartEvolve: true,
       lethalAware: true,
       playTopPool: 1,
       attackTopPool: 1,
-      playScoreJitter: 0.1,
-      tradeAggroThreshold: 6.6
+      playScoreJitter: 0.04,
+      tradeAggroThreshold: 7.4
     }
   }
 ];
@@ -549,10 +549,21 @@ function injectLionSignatureCards(deck) {
   const lionCardIds = [
     "unit_eternal_jouma",
     "unit_lion_champion",
+    "unit_lion_champion",
+    "unit_lion_emperor_true_power",
+    "unit_lion_emperor_true_power",
+    "unit_lion_emperor_true_power",
+    "unit_lion_overlord",
+    "unit_lion_overlord",
+    "spell_lion_command",
     "spell_lion_command",
     "spell_lion_command",
     "spell_lion_wrath",
-    "spell_lion_wrath"
+    "spell_lion_wrath",
+    "spell_lion_tactics",
+    "spell_lion_tactics",
+    "spell_lion_cataclysm",
+    "spell_lion_cataclysm"
   ];
   const signatures = lionCardIds
     .map(id => cardMap[id])
@@ -819,6 +830,7 @@ function grantLionOpeningBonus() {
   drawCard("enemy", 1);
   addCardToHand("enemy", "token_coin");
   addCardToHand("enemy", "spell_lion_command");
+  addCardToHand("enemy", "spell_lion_tactics");
   return true;
 }
 
@@ -1127,7 +1139,7 @@ function initializeBattleFromDeck(deckCounts) {
   if (state.battleMode === "ai") {
     log(`CPU難易度: ${aiDifficultyDef(state.aiDifficulty).displayLabel}`);
     if (lionOpeningBonusApplied) {
-      log("ライオン補正: 追加ドロー1 / コイン1 / 王者の号令1");
+      log("ライオン補正: 追加ドロー1 / コイン1 / 王者の号令1 / 王者の軍配1");
     }
   }
   log(`${sideLabel(state.secondSide)}は後攻ボーナス: 初手+1枚 / コイン1枚 / じょうまの涙1枚。`);
@@ -1544,6 +1556,90 @@ function scoreEnemyPlayCard(card) {
   return score;
 }
 
+function enemyPlayableCardsAtPp(ppValue, skipHandIndex = -1) {
+  const options = [];
+  for (let i = 0; i < state.enemyHand.length; i++) {
+    if (i === skipHandIndex) continue;
+    const card = state.enemyHand[i];
+    if (!card || card.type === "evolution") continue;
+    if ((card.cost || 0) > ppValue) continue;
+    if (card.type === "unit" && state.enemyBoard.length >= MAX_BOARD) continue;
+    options.push({
+      index: i,
+      card,
+      score: scoreEnemyPlayCard(card),
+      leaderDamage: estimateEnemyCardLeaderDamageNow(card)
+    });
+  }
+  return options;
+}
+
+function bestEnemyFollowUpScore(ppValue, skipHandIndex = -1) {
+  const options = enemyPlayableCardsAtPp(ppValue, skipHandIndex);
+  if (!options.length) return { score: -Infinity, lethal: false };
+
+  let best = -Infinity;
+  let lethal = false;
+  for (const option of options) {
+    const mergedScore = option.score + option.leaderDamage * 1.2;
+    if (mergedScore > best) best = mergedScore;
+    if (option.leaderDamage >= state.playerHp) lethal = true;
+  }
+
+  return { score: best, lethal };
+}
+
+function estimateRandomEnemyUnitDamageValue(damage) {
+  if (!state.playerBoard.length) return -99;
+
+  let total = 0;
+  for (const unit of state.playerBoard) {
+    const canKill = damage >= unit.hp;
+    const threat = estimateUnitThreatForAi(unit);
+
+    let value = Math.min(damage, unit.hp) * 0.28;
+    if (canKill) value += 0.8 + threat * 0.48;
+    if (hasKeyword(unit, "ward")) value += canKill ? 1.8 : 0.3;
+    if (hasKeyword(unit, "storm")) value += canKill ? 1.3 : 0.25;
+    if ((unit.atk || 0) >= 5) value += canKill ? 1.1 : 0.35;
+    total += value;
+  }
+
+  return total / state.playerBoard.length;
+}
+
+function shouldEnemyHoldZeroCostCard(card, handIndex, enemyPp, aiConfig) {
+  if (!aiConfig.smartCardChoice) return false;
+  if (!card || card.type !== "spell" || card.cost !== 0) return false;
+
+  if (card.id === "token_coin") {
+    if (enemyPp.value >= 10) return true;
+
+    const now = bestEnemyFollowUpScore(enemyPp.value, handIndex);
+    const afterCoin = bestEnemyFollowUpScore(Math.min(10, enemyPp.value + 1), handIndex);
+
+    if (!now.lethal && afterCoin.lethal) return false;
+    if (!Number.isFinite(afterCoin.score)) return true;
+    if (!Number.isFinite(now.score)) return false;
+    return (afterCoin.score - now.score) < 1.25;
+  }
+
+  if (card.id === "token_jouma_tears") {
+    if (!state.playerBoard.length) return true;
+
+    const expectedValue = estimateRandomEnemyUnitDamageValue(2);
+    const dangerousBoard = state.playerBoard.some(unit =>
+      hasKeyword(unit, "ward")
+      || hasKeyword(unit, "storm")
+      || (unit.atk || 0) >= 4
+    );
+    const threshold = dangerousBoard ? 2.4 : 3.2;
+    return expectedValue < threshold;
+  }
+
+  return false;
+}
+
 function pickEnemyHandIndexToPlay(enemyPp, aiConfig) {
   const candidates = [];
 
@@ -1553,6 +1649,7 @@ function pickEnemyHandIndexToPlay(enemyPp, aiConfig) {
     if (card.cost > enemyPp.value) continue;
     if (card.type === "unit" && state.enemyBoard.length >= MAX_BOARD) continue;
     if (card.type === "spell" && rollChance(aiConfig.spellSkipChance)) continue;
+    if (shouldEnemyHoldZeroCostCard(card, i, enemyPp, aiConfig)) continue;
 
     const jitter = (Math.random() - 0.5) * (aiConfig.playScoreJitter || 0);
     candidates.push({

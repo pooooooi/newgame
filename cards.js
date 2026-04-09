@@ -76,6 +76,17 @@
     collectible: false
   },
   {
+    id: "unit_lion_emperor_true_power",
+    name: "帝王の本気",
+    cost: 3,
+    atk: 4,
+    hp: 4,
+    type: "unit",
+    tags: ["neutral"],
+    keywords: ["storm", "ward"],
+    collectible: false
+  },
+  {
     id: "spell_lion_command",
     name: "王者の号令",
     cost: 2,
@@ -96,6 +107,42 @@
     effects: [
       { type: "destroy_enemy_highest_atk" },
       { type: "damage_all_enemy_units", amount: 2 }
+    ],
+    collectible: false
+  },
+  {
+    id: "unit_lion_overlord",
+    name: "獅皇バハル",
+    cost: 6,
+    atk: 6,
+    hp: 7,
+    type: "unit",
+    tags: ["neutral"],
+    keywords: ["storm"],
+    onPlay: [{ type: "destroy_enemy_highest_atk" }],
+    collectible: false
+  },
+  {
+    id: "spell_lion_tactics",
+    name: "王者の軍配",
+    cost: 1,
+    type: "spell",
+    tags: ["neutral"],
+    effects: [
+      { type: "coin_pp", amount: 1 },
+      { type: "draw", amount: 1 }
+    ],
+    collectible: false
+  },
+  {
+    id: "spell_lion_cataclysm",
+    name: "百獣の天罰",
+    cost: 5,
+    type: "spell",
+    tags: ["neutral"],
+    effects: [
+      { type: "damage_all_enemy_units", amount: 3 },
+      { type: "damage_enemy_leader", amount: 2 }
     ],
     collectible: false
   },
