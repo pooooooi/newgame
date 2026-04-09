@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="lion leader">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#ffd892"/>
+      <stop offset="100%" stop-color="#d38a2a"/>
+    </radialGradient>
+    <radialGradient id="mane" cx="50%" cy="45%" r="62%">
+      <stop offset="0%" stop-color="#ffefc9"/>
+      <stop offset="100%" stop-color="#b25d11"/>
+    </radialGradient>
+    <radialGradient id="face" cx="50%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#ffecc5"/>
+      <stop offset="100%" stop-color="#f0b35d"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="128" cy="128" r="122" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="95" fill="url(#mane)"/>
+  <circle cx="128" cy="136" r="66" fill="url(#face)"/>
+
+  <ellipse cx="90" cy="90" rx="22" ry="28" fill="#cc7a20"/>
+  <ellipse cx="166" cy="90" rx="22" ry="28" fill="#cc7a20"/>
+  <ellipse cx="90" cy="92" rx="12" ry="16" fill="#f6cc86"/>
+  <ellipse cx="166" cy="92" rx="12" ry="16" fill="#f6cc86"/>
+
+  <ellipse cx="104" cy="130" rx="10" ry="12" fill="#1b273e"/>
+  <ellipse cx="152" cy="130" rx="10" ry="12" fill="#1b273e"/>
+  <ellipse cx="104" cy="128" rx="4" ry="5" fill="#ffffff"/>
+  <ellipse cx="152" cy="128" rx="4" ry="5" fill="#ffffff"/>
+
+  <ellipse cx="128" cy="152" rx="16" ry="11" fill="#7b3f16"/>
+  <path d="M104 170c6 11 18 17 24 17s18-6 24-17" fill="none" stroke="#7b3f16" stroke-width="8" stroke-linecap="round"/>
+  <path d="M84 154c8 5 18 5 26 0M146 154c8 5 18 5 26 0" fill="none" stroke="#8e4a1b" stroke-width="5" stroke-linecap="round"/>
+</svg>

@@ -196,6 +196,10 @@ h1 {
   background: linear-gradient(180deg, rgba(36, 71, 117, 0.9), rgba(18, 40, 75, 0.94));
 }
 
+.resultBanner.hidden {
+  display: none;
+}
+
 .chipPp strong {
   font-size: 16px;
 }
@@ -337,6 +341,10 @@ h1 {
 
 .playerMascot {
   background-image: url("assets/leader-cat.svg");
+}
+
+.lionMascot {
+  background-image: url("assets/leader-lion.svg");
 }
 
 .leaderVitals {
@@ -3563,3 +3571,795 @@ button:disabled {
     font-size: 9px;
   }
 }
+
+/* ===== reference arena layout ===== */
+
+.pageBattle .battleApp.referenceLayout {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: min(98vw, 1540px);
+  gap: 0;
+}
+
+.pageBattle .battleApp.referenceLayout .battleLogPanel {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .battleMainPanel {
+  padding: 10px;
+  border-radius: 22px;
+  border: 1px solid rgba(149, 108, 76, 0.74);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 212, 165, 0.16), transparent 18%),
+    radial-gradient(circle at 84% 16%, rgba(255, 197, 140, 0.1), transparent 16%),
+    linear-gradient(160deg, rgba(58, 36, 24, 0.96), rgba(31, 20, 14, 0.98));
+  box-shadow:
+    inset 0 0 0 2px rgba(216, 164, 108, 0.2),
+    0 24px 42px rgba(0, 0, 0, 0.52);
+}
+
+.pageBattle .battleApp.referenceLayout .battleArena {
+  position: relative;
+  min-height: calc(100vh - 52px);
+  border-radius: 18px;
+  border: 1px solid rgba(214, 171, 122, 0.36);
+  padding: 12px 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(235, 182, 119, 0.16), transparent 25%),
+    radial-gradient(circle at 86% 74%, rgba(252, 224, 185, 0.12), transparent 28%),
+    repeating-linear-gradient(
+      120deg,
+      rgba(66, 44, 31, 0.35) 0,
+      rgba(66, 44, 31, 0.35) 3px,
+      rgba(53, 34, 24, 0.36) 3px,
+      rgba(53, 34, 24, 0.36) 14px
+    ),
+    linear-gradient(170deg, #4d3122 0%, #392417 48%, #2a1b12 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 221, 181, 0.1),
+    inset 0 0 60px rgba(0, 0, 0, 0.35);
+}
+
+.pageBattle .battleApp.referenceLayout .battleArena::before,
+.pageBattle .battleApp.referenceLayout .battleArena::after {
+  content: none;
+}
+
+.pageBattle .battleApp.referenceLayout .tableFx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.pageBattle .battleApp.referenceLayout .enemyHandFan {
+  position: absolute;
+  top: 8px;
+  left: 22px;
+  display: flex;
+  align-items: flex-end;
+  min-height: 102px;
+}
+
+.pageBattle .battleApp.referenceLayout .enemyHandCardBack {
+  --fan-offset: 0;
+  width: 68px;
+  height: 94px;
+  margin-left: -36px;
+  border-radius: 8px;
+  border: 1px solid rgba(214, 194, 162, 0.75);
+  background:
+    radial-gradient(circle at 28% 22%, rgba(171, 209, 255, 0.3), transparent 44%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(50, 60, 92, 0.88),
+      rgba(50, 60, 92, 0.88) 4px,
+      rgba(37, 43, 66, 0.92) 4px,
+      rgba(37, 43, 66, 0.92) 8px
+    );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 6px 12px rgba(0, 0, 0, 0.32);
+  transform-origin: bottom center;
+  transform: rotate(calc(var(--fan-offset) * 14deg));
+}
+
+.pageBattle .battleApp.referenceLayout .enemyHandCardBack:first-child {
+  margin-left: 0;
+}
+
+.pageBattle .battleApp.referenceLayout .enemyHandMore {
+  margin-left: 8px;
+  margin-bottom: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(241, 231, 199, 0.72);
+  background: rgba(17, 22, 32, 0.76);
+  color: #fff2c9;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pageBattle .battleApp.referenceLayout .cornerCounters {
+  position: absolute;
+  display: flex;
+  gap: 8px;
+}
+
+.pageBattle .battleApp.referenceLayout .enemyCounters {
+  top: 10px;
+  right: 14px;
+}
+
+.pageBattle .battleApp.referenceLayout .playerCounters {
+  left: 12px;
+  bottom: 116px;
+}
+
+.pageBattle .battleApp.referenceLayout .counterBox {
+  min-width: 72px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(229, 203, 158, 0.64);
+  background:
+    linear-gradient(180deg, rgba(32, 23, 18, 0.9), rgba(17, 13, 11, 0.95)),
+    radial-gradient(circle at top, rgba(255, 243, 221, 0.12), transparent 62%);
+  color: #fff6de;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
+}
+
+.pageBattle .battleApp.referenceLayout .counterIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.pageBattle .battleApp.referenceLayout .counterBox strong {
+  font-size: 18px;
+  letter-spacing: 0.03em;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .battleHud {
+  position: static;
+  margin: 0;
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .battleHud .chip {
+  position: static;
+  transform: none;
+  min-width: 78px;
+  min-height: 40px;
+  padding: 5px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 206, 160, 0.72);
+  background:
+    linear-gradient(180deg, rgba(30, 21, 16, 0.88), rgba(15, 11, 9, 0.93)),
+    radial-gradient(circle at top, rgba(255, 229, 178, 0.13), transparent 68%);
+  color: #ffeec4;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    0 8px 14px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .battleHud .chipIcon {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .battleHud .chip strong {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  font-size: 20px;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 219, 156, 0.16);
+}
+
+.pageBattle .battleApp.referenceLayout .chipTurn strong::before,
+.pageBattle .battleApp.referenceLayout .chipPp strong::before {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 235, 194, 0.9);
+  text-shadow: none;
+}
+
+.pageBattle .battleApp.referenceLayout .chipTurn strong::before {
+  content: "TURN";
+}
+
+.pageBattle .battleApp.referenceLayout .chipPp strong::before {
+  content: "PP";
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .chipTurn {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .chipPp {
+  transform: none;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .chipTurn {
+  border-color: rgba(250, 221, 164, 0.88);
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .chipPp {
+  border-color: rgba(141, 223, 255, 0.88);
+}
+
+.pageBattle .battleApp.referenceLayout .chipEnemyHp,
+.pageBattle .battleApp.referenceLayout .chipPlayerHp {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .missionChip {
+  position: absolute;
+  top: 92px;
+  left: 18px;
+  width: auto;
+  max-width: 460px;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(246, 223, 165, 0.76);
+  background:
+    linear-gradient(180deg, rgba(47, 31, 21, 0.92), rgba(23, 16, 12, 0.95)),
+    radial-gradient(circle at top, rgba(255, 227, 169, 0.12), transparent 65%);
+  z-index: 6;
+}
+
+.pageBattle .battleApp.referenceLayout .missionChip strong {
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.pageBattle .battleApp.referenceLayout .resultBanner {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, 52vw);
+  margin: 0;
+  z-index: 7;
+}
+
+.pageBattle .battleApp.referenceLayout .resultBanner.hidden {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .boardStage {
+  position: relative;
+  min-height: 34vh;
+  padding: 10px 0 42px;
+  z-index: 4;
+}
+
+.pageBattle .battleApp.referenceLayout .board {
+  position: relative;
+  width: min(72vw, 980px);
+  margin: 0 auto;
+  min-height: clamp(180px, 24vh, 280px);
+  padding: 24px 42px 22px;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+}
+
+.pageBattle .battleApp.referenceLayout .board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(210, 156, 118, 0.7);
+  background:
+    radial-gradient(circle at 38% 30%, rgba(255, 231, 194, 0.34), transparent 26%),
+    radial-gradient(circle at 72% 68%, rgba(213, 145, 104, 0.18), transparent 35%),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(136, 94, 69, 0.2) 0 8px,
+      rgba(118, 82, 61, 0.2) 8px 16px,
+      rgba(148, 107, 82, 0.2) 16px 22px
+    ),
+    linear-gradient(170deg, rgba(244, 209, 167, 0.85), rgba(211, 170, 131, 0.86));
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 234, 202, 0.4),
+    inset 0 0 70px rgba(98, 61, 40, 0.34),
+    0 16px 26px rgba(0, 0, 0, 0.26);
+  z-index: 0;
+}
+
+.pageBattle .battleApp.referenceLayout .board::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 232, 203, 0.42);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pageBattle .battleApp.referenceLayout .board .lane {
+  position: relative;
+  min-height: 90px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.pageBattle .battleApp.referenceLayout .board .lane::before {
+  content: none;
+}
+
+.pageBattle .battleApp.referenceLayout .board .lane .boardRow {
+  width: 100%;
+}
+
+.pageBattle .battleApp.referenceLayout .board .lane h3 {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .playerLane::after {
+  content: "\6700\5927\0034\4F53";
+  position: absolute;
+  right: 8px;
+  bottom: -8px;
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(80, 59, 47, 0.7);
+  background: rgba(255, 236, 209, 0.58);
+  border-radius: 999px;
+  padding: 2px 6px;
+}
+
+.pageBattle .battleApp.referenceLayout .boardRow {
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  padding: 0 6px 2px;
+}
+
+.pageBattle .battleApp.referenceLayout .boardRow::-webkit-scrollbar {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .enemyLane .battleCard,
+.pageBattle .battleApp.referenceLayout .playerLane .battleCard,
+.pageBattle .battleApp.referenceLayout .board .emptySlot {
+  width: 112px;
+  height: 160px;
+  min-height: 160px;
+  border-radius: 11px;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderRow {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  margin: 0;
+  z-index: 5;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderTop {
+  top: 0;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom {
+  bottom: 2px;
+  width: max-content;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  z-index: 12;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderCard {
+  width: 98px;
+  min-height: 98px;
+  height: 98px;
+  overflow: visible;
+  border-radius: 50%;
+  padding: 8px;
+  border: 2px solid rgba(255, 227, 193, 0.74);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.14),
+    0 16px 26px rgba(0, 0, 0, 0.3);
+}
+
+.pageBattle .battleApp.referenceLayout .leaderInner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  justify-content: center;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderMascot {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 0;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderVitals {
+  margin: 0;
+  position: absolute;
+  right: -18px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderTop .leaderVitals {
+  top: 6px;
+}
+
+.pageBattle .battleApp.referenceLayout .leaderBottom .leaderVitals {
+  bottom: 4px;
+}
+
+.pageBattle .battleApp.referenceLayout .orderBadge {
+  min-width: 34px;
+  padding: 2px 6px;
+  font-size: 10px;
+}
+
+.pageBattle .battleApp.referenceLayout .hpBadge {
+  min-width: 40px;
+  padding: 4px 8px;
+  font-size: 23px;
+  border: 2px solid rgba(255, 231, 194, 0.72);
+}
+
+.pageBattle .battleApp.referenceLayout .handLane {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  width: min(78vw, 1040px);
+  min-height: 132px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  z-index: 9;
+}
+
+.pageBattle .battleApp.referenceLayout .handLane h3 {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout .hand {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 4px 6px;
+  scrollbar-width: none;
+}
+
+.pageBattle .battleApp.referenceLayout .hand::-webkit-scrollbar {
+  display: none;
+}
+
+.pageBattle .battleApp.referenceLayout #hand .battleCard,
+.pageBattle .battleApp.referenceLayout .hand .battleCard {
+  width: 112px;
+  height: 160px;
+  min-height: 160px;
+  margin-left: 0;
+  border-radius: 11px;
+  transform: none;
+}
+
+.pageBattle .battleApp.referenceLayout #hand .battleCard:hover,
+.pageBattle .battleApp.referenceLayout .hand .battleCard:hover {
+  transform: translateY(-10px) scale(1.02) !important;
+  z-index: 30;
+}
+
+.pageBattle .battleApp.referenceLayout .cardInspect {
+  position: absolute;
+  left: 18px;
+  bottom: 116px;
+  width: min(340px, 29vw);
+  min-height: 58px;
+  margin: 0;
+  z-index: 8;
+}
+
+.pageBattle .battleApp.referenceLayout .actions {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  z-index: 10;
+}
+
+.pageBattle .battleApp.referenceLayout #endTurnBtn {
+  width: 106px;
+  height: 106px;
+  border-radius: 50%;
+  border: 2px solid rgba(229, 202, 143, 0.88);
+  background:
+    radial-gradient(circle at 35% 28%, rgba(150, 222, 255, 0.34), transparent 38%),
+    linear-gradient(180deg, rgba(18, 93, 143, 0.96), rgba(9, 48, 89, 0.98));
+  color: #e9f8ff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  line-height: 1.1;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 26px rgba(130, 223, 255, 0.24),
+    0 18px 30px rgba(0, 0, 0, 0.38);
+}
+
+.pageBattle .battleApp.referenceLayout #endTurnBtn:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.pageBattle .battleApp.referenceLayout #resetBtn,
+.pageBattle .battleApp.referenceLayout #logOpenBtn,
+.pageBattle .battleApp.referenceLayout .mobileLogBtn {
+  min-width: 96px;
+  min-height: 30px;
+  border-radius: 999px;
+  font-size: 12px;
+  justify-self: center;
+}
+
+@media (max-width: 980px) {
+  .pageBattle .battleApp.referenceLayout .battleMainPanel {
+    padding: 6px;
+    border-radius: 16px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .battleArena {
+    min-height: auto;
+    padding: 5px;
+    overflow: visible;
+  }
+
+  .pageBattle .battleApp.referenceLayout .tableFx,
+  .pageBattle .battleApp.referenceLayout .enemyCounters,
+  .pageBattle .battleApp.referenceLayout .playerCounters {
+    display: none;
+  }
+
+  .pageBattle .battleApp.referenceLayout .missionChip,
+  .pageBattle .battleApp.referenceLayout .resultBanner {
+    position: static;
+    transform: none;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderBottom {
+    position: relative;
+    bottom: auto;
+    width: max-content;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    justify-self: center;
+    z-index: 12;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderBottom .battleHud {
+    position: static;
+    inset: auto;
+    width: auto;
+    height: auto;
+    display: flex;
+    z-index: 11;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderBottom .battleHud .chip {
+    position: static;
+    transform: none;
+    min-width: 62px;
+    min-height: 34px;
+    padding: 4px 6px;
+    border-radius: 9px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderBottom .chipTurn {
+    display: none;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderBottom .chipPp {
+    transform: none;
+  }
+
+  .pageBattle .battleApp.referenceLayout .missionChip {
+    display: inline-flex;
+    max-width: 100%;
+    min-height: 26px;
+    padding: 4px 8px;
+    margin-bottom: 3px;
+    border-radius: 10px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderBottom .battleHud .chip strong {
+    font-size: 14px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .chipTurn strong::before,
+  .pageBattle .battleApp.referenceLayout .chipPp strong::before {
+    font-size: 8px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .boardStage {
+    min-height: 0;
+    padding: 0;
+    display: grid;
+    gap: 1px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .board {
+    width: 100%;
+    min-height: 0;
+    padding: 2px;
+    gap: 1px;
+    border-radius: 18px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .board::before,
+  .pageBattle .battleApp.referenceLayout .board::after {
+    border-radius: 18px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderRow {
+    position: static;
+    transform: none;
+    margin: 0 auto;
+  }
+
+  .pageBattle .battleApp.referenceLayout .leaderCard {
+    width: 62px;
+    min-height: 62px;
+    height: 62px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .hpBadge {
+    min-width: 28px;
+    padding: 2px 5px;
+    font-size: 16px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .orderBadge {
+    min-width: 30px;
+    font-size: 9px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .board .lane h3 {
+    display: none;
+  }
+
+  .pageBattle .battleApp.referenceLayout .enemyLane .battleCard,
+  .pageBattle .battleApp.referenceLayout .playerLane .battleCard,
+  .pageBattle .battleApp.referenceLayout .board .emptySlot {
+    width: 64px;
+    height: 92px;
+    min-height: 92px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .board .lane {
+    min-height: 0;
+  }
+
+  .pageBattle .battleApp.referenceLayout .handLane {
+    position: static;
+    transform: none;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .pageBattle .battleApp.referenceLayout .cardInspect {
+    position: static;
+    display: block;
+    width: 100%;
+    min-height: 38px;
+    margin: 1px 0 3px;
+    padding: 3px 7px;
+    border-radius: 8px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .inspectTitle {
+    font-size: 10px;
+    margin-bottom: 1px;
+  }
+
+  .pageBattle .battleApp.referenceLayout .inspectText {
+    font-size: 9px;
+    line-height: 1.2;
+    max-height: 3.6em;
+    overflow-y: auto;
+  }
+
+  .pageBattle .battleApp.referenceLayout .hand {
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding: 0 0 4px;
+    gap: 3px;
+  }
+
+  .pageBattle .battleApp.referenceLayout #hand .battleCard,
+  .pageBattle .battleApp.referenceLayout .hand .battleCard {
+    width: 64px;
+    height: 92px;
+    min-height: 92px;
+    margin-left: 0;
+    transform: none;
+  }
+
+  .pageBattle .battleApp.referenceLayout #hand .battleCard:hover,
+  .pageBattle .battleApp.referenceLayout .hand .battleCard:hover {
+    transform: translateY(-6px) scale(1.02) !important;
+  }
+
+  .pageBattle .battleApp.referenceLayout .actions {
+    position: static;
+    transform: none;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 3px;
+  }
+
+  .pageBattle .battleApp.referenceLayout #endTurnBtn {
+    width: 100%;
+    height: 33px;
+    border-radius: 12px;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+
+  .pageBattle .battleApp.referenceLayout #resetBtn,
+  .pageBattle .battleApp.referenceLayout #logOpenBtn,
+  .pageBattle .battleApp.referenceLayout .mobileLogBtn {
+    min-width: 52px;
+    min-height: 28px;
+  }
+}
+
+
+

@@ -79,19 +79,19 @@ const AI_DIFFICULTIES = [
     animal: "ライオン",
     displayLabel: "激つよ / ライオン",
     ai: {
-      playLoopLimit: 40,
+      playLoopLimit: 64,
       spellSkipChance: 0,
       evolveChance: 1,
-      followerAttackChance: 0.03,
-      faceBias: 0.94,
+      followerAttackChance: 0,
+      faceBias: 0.99,
       smartCardChoice: true,
       smartAttackChoice: true,
       smartEvolve: true,
       lethalAware: true,
       playTopPool: 1,
       attackTopPool: 1,
-      playScoreJitter: 0.04,
-      tradeAggroThreshold: 7.4
+      playScoreJitter: 0,
+      tradeAggroThreshold: 9
     }
   }
 ];
@@ -322,6 +322,23 @@ function sideOrderClass(side) {
   return side === state.secondSide ? "orderSecond" : "orderFirst";
 }
 
+function isLionAiBattle() {
+  return state.battleMode === "ai" && normalizeAiDifficulty(state.aiDifficulty) === "lion";
+}
+
+function leaderHpCapForSide(side) {
+  if (side === "enemy" && isLionAiBattle()) return 30;
+  return 20;
+}
+
+function leaderMascotForSide(side) {
+  if (side === "enemy" && isLionAiBattle()) {
+    return { className: "lionMascot", ariaLabel: "ライオンリーダー" };
+  }
+  if (side === "enemy") return { className: "enemyMascot", ariaLabel: "犬リーダー" };
+  return { className: "playerMascot", ariaLabel: "猫リーダー" };
+}
+
 function battleResultInfo() {
   if (!state.gameOver) return null;
 
@@ -361,7 +378,7 @@ function missionRewardLabelForSide(side, mission) {
   return isSecondPlayer(side) ? `${mission.rewardText} + 後攻補正` : mission.rewardText;
 }
 
-function missionDisplayLabel(mission) {
+function missionDisplayLabel(mission, side = activeSide()) {
   if (!mission) return "-";
 
   const shortLabels = {
@@ -372,7 +389,8 @@ function missionDisplayLabel(mission) {
   };
 
   const label = shortLabels[mission.id] || mission.text;
-  return `${label} ${mission.progress}/${mission.target}`;
+  const rewardLabel = missionRewardLabelForSide(side, mission).replace(/^報酬:\s*/, "");
+  return `${label} ${mission.progress}/${mission.target} / 達成効果: ${rewardLabel}`;
 }
 
 function activeSide() {
@@ -686,6 +704,8 @@ function getSideData(side) {
     return {
       board: state.playerBoard,
       enemyBoard: state.enemyBoard,
+      deck: state.playerDeck,
+      enemyDeck: state.enemyDeck,
       hand: state.playerHand,
       enemyHand: state.enemyHand,
       getLeaderHp: () => state.playerHp,
@@ -700,6 +720,8 @@ function getSideData(side) {
   return {
     board: state.enemyBoard,
     enemyBoard: state.playerBoard,
+    deck: state.enemyDeck,
+    enemyDeck: state.playerDeck,
     hand: state.enemyHand,
     enemyHand: state.playerHand,
     getLeaderHp: () => state.enemyHp,
@@ -824,13 +846,22 @@ function grantSecondPlayerBonus(side) {
 }
 
 function grantLionOpeningBonus() {
-  if (state.battleMode !== "ai") return false;
-  if (normalizeAiDifficulty(state.aiDifficulty) !== "lion") return false;
+  if (!isLionAiBattle()) return false;
 
-  drawCard("enemy", 1);
+  drawCard("enemy", 2);
+  addCardToHand("enemy", "token_coin");
   addCardToHand("enemy", "token_coin");
   addCardToHand("enemy", "spell_lion_command");
   addCardToHand("enemy", "spell_lion_tactics");
+  addCardToHand("enemy", "spell_lion_wrath");
+  return true;
+}
+
+function applyLionTurnBonus(enemyPp) {
+  if (!isLionAiBattle()) return false;
+  if (enemyPp) enemyPp.value = Math.min(10, (enemyPp.value || 0) + 1);
+  drawCard("enemy", 1);
+  state.enemyHp = Math.min(leaderHpCapForSide("enemy"), state.enemyHp + 1);
   return true;
 }
 
@@ -844,7 +875,7 @@ function resolveEffects(effects, side, runtime = {}) {
     }
 
     if (effect.type === "heal_leader") {
-      const next = Math.min(20, data.getLeaderHp() + (effect.amount || 0));
+      const next = Math.min(leaderHpCapForSide(side), data.getLeaderHp() + (effect.amount || 0));
       data.setLeaderHp(next);
       continue;
     }
@@ -1104,6 +1135,7 @@ function initializeBattleFromDeck(deckCounts) {
   state.pp = 1;
   state.battleMode = loadBattleMode();
   state.aiDifficulty = loadAiDifficulty();
+  if (isLionAiBattle()) state.enemyHp = 24;
   state.playerDeck = shuffle(buildDeckFromCounts(deckCounts));
   state.enemyDeck = state.battleMode === "pvp"
     ? shuffle(buildDeckFromCounts(deckCounts))
@@ -1139,7 +1171,7 @@ function initializeBattleFromDeck(deckCounts) {
   if (state.battleMode === "ai") {
     log(`CPU難易度: ${aiDifficultyDef(state.aiDifficulty).displayLabel}`);
     if (lionOpeningBonusApplied) {
-      log("ライオン補正: 追加ドロー1 / コイン1 / 王者の号令1 / 王者の軍配1");
+      log("ライオン補正: 初期HP24 / 追加ドロー2 / コイン2 / 王者の号令1 / 王者の軍配1 / 百獣の粛清1");
     }
   }
   log(`${sideLabel(state.secondSide)}は後攻ボーナス: 初手+1枚 / コイン1枚 / じょうまの涙1枚。`);
@@ -1480,20 +1512,21 @@ function scoreEnemyEffect(effect) {
   const amount = effect.amount || 0;
   const playerBoardCount = state.playerBoard.length;
   const enemyBoardCount = state.enemyBoard.length;
+  const lionBoost = isLionAiBattle();
 
   if (effect.type === "draw") return (amount || 1) * 1.45;
   if (effect.type === "heal_leader") return (state.enemyHp <= 12 ? 1.2 : 0.45) * amount;
   if (effect.type === "damage_enemy_leader") {
-    if (state.playerHp <= amount) return 130;
-    return amount * 2.15;
+    if (state.playerHp <= amount) return lionBoost ? 220 : 130;
+    return amount * (lionBoost ? 3.2 : 2.15);
   }
   if (effect.type === "damage_random_enemy_unit") return playerBoardCount > 0 ? amount * 1.3 : -1.4;
   if (effect.type === "damage_all_enemy_units") return playerBoardCount > 0 ? amount * (0.95 + playerBoardCount * 0.48) : -1.8;
   if (effect.type === "damage_enemy_unit_or_leader") {
-    if (playerBoardCount > 0) return amount * 1.35;
+    if (playerBoardCount > 0) return amount * (lionBoost ? 1.55 : 1.35);
     const faceDamage = (effect.leaderFallback ?? amount);
-    if (state.playerHp <= faceDamage) return 120;
-    return faceDamage * 1.95;
+    if (state.playerHp <= faceDamage) return lionBoost ? 190 : 120;
+    return faceDamage * (lionBoost ? 2.8 : 1.95);
   }
   if (effect.type === "summon") {
     const count = effect.count || 1;
@@ -1611,6 +1644,7 @@ function estimateRandomEnemyUnitDamageValue(damage) {
 function shouldEnemyHoldZeroCostCard(card, handIndex, enemyPp, aiConfig) {
   if (!aiConfig.smartCardChoice) return false;
   if (!card || card.type !== "spell" || card.cost !== 0) return false;
+  if (isLionAiBattle()) return false;
 
   if (card.id === "token_coin") {
     if (enemyPp.value >= 10) return true;
@@ -1674,6 +1708,15 @@ function pickEnemyHandIndexToPlay(enemyPp, aiConfig) {
     if (setupLethal.length) return setupLethal[0].index;
   }
 
+  if (isLionAiBattle()) {
+    candidates.sort((a, b) => {
+      const aValue = a.score + a.leaderDamage * 2.8;
+      const bValue = b.score + b.leaderDamage * 2.8;
+      return (b.leaderDamage - a.leaderDamage) || (bValue - aValue);
+    });
+    return candidates[0].index;
+  }
+
   if (!aiConfig.smartCardChoice) {
     return candidates[Math.floor(Math.random() * candidates.length)].index;
   }
@@ -1686,6 +1729,13 @@ function pickEnemyHandIndexToPlay(enemyPp, aiConfig) {
 function shouldEnemyEvolveUnit(unit, evoCard, enemyPp, aiConfig) {
   if (!unit || !evoCard) return false;
   if (evoCard.cost > enemyPp.value) return false;
+  if (isLionAiBattle()) {
+    const noWard = getWardUnits(state.playerBoard).length === 0;
+    const grantsStorm = (evoCard.grantsKeywords || []).includes("storm");
+    if (grantsStorm && noWard) return true;
+    if (state.playerBoard.length > 0) return true;
+    return true;
+  }
   if (!aiConfig.smartEvolve) return rollChance(aiConfig.evolveChance);
 
   const noWard = getWardUnits(state.playerBoard).length === 0;
@@ -1734,6 +1784,7 @@ function shouldEnemyAttackFollower(attacker, aiConfig, pickedTarget) {
   if (!canAttackFollower(attacker)) return false;
   if (!canAttackLeader(attacker)) return true;
   if (aiConfig.lethalAware && enemyPotentialLeaderDamage() >= state.playerHp) return false;
+  if (isLionAiBattle()) return false;
 
   if (aiConfig.faceBias && rollChance(aiConfig.faceBias)) {
     return false;
@@ -1755,6 +1806,9 @@ function enemyTurn() {
   const enemyPp = { value: state.maxPp };
   drawCard("enemy", 1);
   refreshBoardForTurn("enemy");
+  if (applyLionTurnBonus(enemyPp)) {
+    log("ライオン補正: 追加ドロー1 / PP+1 / 自リーダー1回復");
+  }
   log("相手ターン開始。");
 
   let acted = true;
@@ -2031,7 +2085,7 @@ function updateInspectPanel(card) {
 
   if (!card) {
     titleEl.textContent = "カード詳細";
-    textEl.textContent = "カードの i ボタンで効果を確認できます。";
+    textEl.textContent = "カードをタップすると効果を確認できます。";
     return;
   }
 
@@ -2198,7 +2252,7 @@ function renderBattle() {
   const missionChipEl = document.getElementById("missionChip");
   if (missionEl) {
     const m = missionFor(side);
-    missionEl.textContent = missionDisplayLabel(m);
+    missionEl.textContent = missionDisplayLabel(m, side);
     if (missionChipEl) {
       missionChipEl.title = m
         ? `${m.text} (${m.progress}/${m.target}) / ${missionRewardLabelForSide(side, m)}`
@@ -2226,12 +2280,40 @@ function renderBattle() {
   const playerOrder = sideOrderLabel(side);
   const enemyOrderClass = sideOrderClass(opp);
   const playerOrderClass = sideOrderClass(side);
+  const enemyMascot = leaderMascotForSide(opp);
+  const playerMascot = leaderMascotForSide(side);
   const enemyHandCountEl = document.getElementById("enemyHandCount");
   if (enemyHandCountEl) enemyHandCountEl.textContent = `手札 ${foe.hand.length}`;
+  const enemyDeckCount = Array.isArray(foe.deck) ? foe.deck.length : 0;
+  const playerDeckCount = Array.isArray(me.deck) ? me.deck.length : 0;
+  const enemyDeckCountEl = document.getElementById("enemyDeckCount");
+  if (enemyDeckCountEl) enemyDeckCountEl.textContent = String(enemyDeckCount);
+  const enemyHandMiniCountEl = document.getElementById("enemyHandMiniCount");
+  if (enemyHandMiniCountEl) enemyHandMiniCountEl.textContent = String(foe.hand.length);
+  const playerDeckCountEl = document.getElementById("playerDeckCount");
+  if (playerDeckCountEl) playerDeckCountEl.textContent = String(playerDeckCount);
+  const enemyHandFanEl = document.getElementById("enemyHandFan");
+  if (enemyHandFanEl) {
+    enemyHandFanEl.innerHTML = "";
+    const fanCount = Math.max(0, Math.min(foe.hand.length, 8));
+    for (let i = 0; i < fanCount; i += 1) {
+      const handBackEl = document.createElement("span");
+      handBackEl.className = "enemyHandCardBack";
+      const spread = fanCount > 1 ? i / (fanCount - 1) - 0.5 : 0;
+      handBackEl.style.setProperty("--fan-offset", String(spread));
+      enemyHandFanEl.appendChild(handBackEl);
+    }
+    if (foe.hand.length > fanCount) {
+      const moreEl = document.createElement("span");
+      moreEl.className = "enemyHandMore";
+      moreEl.textContent = `+${foe.hand.length - fanCount}`;
+      enemyHandFanEl.appendChild(moreEl);
+    }
+  }
 
   document.getElementById("enemyLeaderAvatar").innerHTML = `
     <div class="leaderInner mascotLeader">
-      <div class="leaderMascot enemyMascot" role="img" aria-label="犬リーダー"></div>
+      <div class="leaderMascot ${enemyMascot.className}" role="img" aria-label="${enemyMascot.ariaLabel}"></div>
       <div class="leaderVitals">
         <span class="orderBadge ${enemyOrderClass}">${enemyOrder}</span>
         <span class="hpBadge">${enemyHp}</span>
@@ -2240,7 +2322,7 @@ function renderBattle() {
   `;
   document.getElementById("playerLeaderAvatar").innerHTML = `
     <div class="leaderInner mascotLeader">
-      <div class="leaderMascot playerMascot" role="img" aria-label="猫リーダー"></div>
+      <div class="leaderMascot ${playerMascot.className}" role="img" aria-label="${playerMascot.ariaLabel}"></div>
       <div class="leaderVitals">
         <span class="orderBadge ${playerOrderClass}">${playerOrder}</span>
         <span class="hpBadge">${playerHp}</span>
@@ -2362,17 +2444,6 @@ function renderBattle() {
         updateInspectPanel(card);
       });
       div.addEventListener("pointerdown", (ev) => beginHandCardDrag(i, div, ev));
-
-      const infoBtn = document.createElement("button");
-      infoBtn.className = "miniInfoBtn";
-      infoBtn.type = "button";
-      infoBtn.textContent = "i";
-      infoBtn.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        state.inspectCardId = card.id;
-        updateInspectPanel(card);
-      });
-      div.appendChild(infoBtn);
 
       handEl.appendChild(div);
 

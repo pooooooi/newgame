@@ -21,25 +21,26 @@
       <div class="rotateText">バトルは横持ちだと見やすく、操作しやすくなります。</div>
     </div>
   </div>
-  <div id="battleScreen" class="app battleApp compact">
+  <div id="battleScreen" class="app battleApp compact referenceLayout">
     <section class="panel battleMainPanel">
       <div class="battleArena">
-        <div class="status battleHud">
-          <div class="chip chipTurn" title="ターン">
-            <span class="chipIcon" aria-hidden="true">⌛</span>
-            <strong id="turn">1</strong>
+        <div class="tableFx" aria-hidden="true">
+          <div id="enemyHandFan" class="enemyHandFan"></div>
+          <div class="cornerCounters enemyCounters">
+            <div class="counterBox">
+              <span class="counterIcon">🂠</span>
+              <strong id="enemyDeckCount">0</strong>
+            </div>
+            <div class="counterBox">
+              <span class="counterIcon">✋</span>
+              <strong id="enemyHandMiniCount">0</strong>
+            </div>
           </div>
-          <div class="chip chipPlayerHp" title="あなたHP">
-            <span class="chipIcon" aria-hidden="true">🐱</span>
-            <strong id="playerHp">20</strong>
-          </div>
-          <div class="chip chipEnemyHp" title="相手HP">
-            <span class="chipIcon" aria-hidden="true">🐶</span>
-            <strong id="enemyHp">20</strong>
-          </div>
-          <div class="chip chipPp" title="PP">
-            <span class="chipIcon" aria-hidden="true">◆</span>
-            <strong id="pp">1/1</strong>
+          <div class="cornerCounters playerCounters">
+            <div class="counterBox">
+              <span class="counterIcon">🂠</span>
+              <strong id="playerDeckCount">0</strong>
+            </div>
           </div>
         </div>
         <div id="missionChip" class="chip missionChip" title="ミッション未設定">
@@ -51,23 +52,43 @@
           <span id="resultSub">勝敗がここに表示されます</span>
         </div>
 
-        <div class="leaderRow leaderTop">
-          <div id="enemyLeaderAvatar" class="leaderCard enemyLeader targetLeader"></div>
-        </div>
-
-        <div class="board">
-          <div class="lane enemyLane">
-            <h3>相手の場 <span id="enemyHandCount" class="handCountBadge">手札 0</span></h3>
-            <div id="enemyBoard"></div>
+        <div class="boardStage">
+          <div class="leaderRow leaderTop">
+            <div id="enemyLeaderAvatar" class="leaderCard enemyLeader targetLeader"></div>
           </div>
-          <div class="lane playerLane">
-            <h3>あなたの場（最大4体）</h3>
-            <div id="playerBoard"></div>
-          </div>
-        </div>
 
-        <div class="leaderRow leaderBottom">
-          <div id="playerLeaderAvatar" class="leaderCard playerLeader"></div>
+          <div class="board">
+            <div class="lane enemyLane">
+              <h3>相手の場 <span id="enemyHandCount" class="handCountBadge">手札 0</span></h3>
+              <div id="enemyBoard"></div>
+            </div>
+            <div class="lane playerLane">
+              <h3>あなたの場（最大4体）</h3>
+              <div id="playerBoard"></div>
+            </div>
+          </div>
+
+          <div class="leaderRow leaderBottom">
+            <div id="playerLeaderAvatar" class="leaderCard playerLeader"></div>
+            <div class="status battleHud">
+              <div class="chip chipTurn" title="ターン">
+                <span class="chipIcon" aria-hidden="true">⌛</span>
+                <strong id="turn">1</strong>
+              </div>
+              <div class="chip chipPlayerHp" title="あなたHP">
+                <span class="chipIcon" aria-hidden="true">🐱</span>
+                <strong id="playerHp">20</strong>
+              </div>
+              <div class="chip chipEnemyHp" title="相手HP">
+                <span class="chipIcon" aria-hidden="true">🐶</span>
+                <strong id="enemyHp">20</strong>
+              </div>
+              <div class="chip chipPp" title="PP">
+                <span class="chipIcon" aria-hidden="true">◆</span>
+                <strong id="pp">1/1</strong>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="lane handLane">
@@ -77,7 +98,7 @@
 
         <div id="cardInspect" class="cardInspect">
           <div id="inspectTitle" class="inspectTitle">カード詳細</div>
-          <div id="inspectText" class="inspectText">カードの i ボタンで効果を確認できます。</div>
+          <div id="inspectText" class="inspectText">カードをタップすると効果を確認できます。</div>
         </div>
 
         <div class="actions">
